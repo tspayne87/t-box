@@ -1,0 +1,27 @@
+{
+  "name": "square-one",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha -r ts-node/register tests/**/*.spec.ts",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "is-promise": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.4",
+    "@types/mocha": "^5.2.3",
+    "@types/node": "^10.3.4",
+    "chai": "^4.1.2",
+    "gulp": "^3.9.1",
+    "gulp-mocha": "^6.0.0",
+    "gulp-typescript": "^5.0.0-alpha.2",
+    "mocha": "^5.2.0",
+    "ts-node": "^6.1.2",
+    "typescript": "^2.9.2"
+  }
+}
