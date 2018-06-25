@@ -2,6 +2,9 @@ import * as HTTP from 'http';
 import * as URL from 'url';
 
 export class Http {
+    public status?: number;
+    public headers: HTTP.IncomingHttpHeaders = <any>{};
+
     public Get(url: string): Promise<any> {
         return this.Request(url, 'GET');
     }
@@ -28,12 +31,18 @@ export class Http {
             };
 
             let req = HTTP.request(options, (res) => {
+                this.status = res.statusCode;
+                this.headers = res.headers;
                 var data = '';
                 res.on('error', (err) => reject(err));
                 res.on('data', chunk => data += chunk);
                 res.on('end', function() {
                     try {
-                        resolve(JSON.parse(data));
+                        if (res.headers['content-type'] === 'application/json') {
+                            resolve(JSON.parse(data));
+                        } else {
+                            resolve(data);
+                        }
                     } catch(err) {
                         reject(err);
                     }

@@ -21,6 +21,8 @@ describe('{Injection}:/user', function() {
     it('{GET}:/user/{id}', (done) => {
         http.Get(`http://localhost:${port}/user/${id}`)
             .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'application/json');
                 assert.equal(`${id}-Injection`, data);
                 done();
             })
@@ -30,6 +32,8 @@ describe('{Injection}:/user', function() {
     it('{POST}:/user', (done) => {
         http.Post(`http://localhost:${port}/user`, { id })
             .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'application/json');
                 assert.deepEqual({ id, injection: true }, data);
                 done();
             })
@@ -39,6 +43,8 @@ describe('{Injection}:/user', function() {
     it('{DELETE}:/user/{id}', (done) => {
         http.Delete(`http://localhost:${port}/user/${id}`)
             .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'application/json');
                 assert.equal(false, data);
                 done();
             })

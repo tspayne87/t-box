@@ -9,6 +9,11 @@ export class UserController extends Controller {
         this.data = 'Searching...';
     }
 
+    @Get('[action]')
+    public index() {
+        return this.html(`<html><head></head><body><div id="app"></div></body><html>`);
+    }
+
     @Get()
     public search(): string {
         return this.data;

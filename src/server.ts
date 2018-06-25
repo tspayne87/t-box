@@ -3,20 +3,24 @@ import * as url from 'url';
 import * as isPromise from 'is-promise';
 import { Controller } from './controller';
 import { Injector } from './injector';
-import { Method } from './enums';
+import { Method, Status } from './enums';
 import { IInternalRoute, IInternalInjectedRoute, IRoute } from './interfaces';
+import { Result, JsonResult } from './results';
+
 
 export class Server {
     private _server: http.Server;
     private _routes: IInternalRoute[];
     private _injectedRoutes: IInternalInjectedRoute[];
     private _paramRegex: RegExp;
+    private _actionRegex: RegExp;
 
     private _port: Number;
 
     constructor() {
         this._server = http.createServer(this.handleRequest.bind(this));
         this._paramRegex = /{(.*)}/;
+        this._actionRegex = /\[(.*)\]/;
         this._injectedRoutes = [];
         this._routes = [];
         this._port = 0;
@@ -25,7 +29,7 @@ export class Server {
     public addControllers(...controllers: Controller[]) {
         for (let i = 0; i < controllers.length; ++i) {
             for (let j = 0; j < controllers[i]._routes.length; ++j) {
-                var route = Object.assign<IInternalRoute, IRoute>(<any>{}, controllers[i]._routes[j]);
+                var route = this.copyRoute<IInternalRoute>(controllers[i]._routes[j]);
                 route.controller = controllers[i];
                 this._routes.push(route);
             }
@@ -35,11 +39,28 @@ export class Server {
     public addInjectors(...injectors: Injector[]) {
         for (let i = 0; i < injectors.length; ++i) {
             for (let j = 0; j < injectors[i]._routes.length; ++j) {
-                var route = Object.assign<IInternalInjectedRoute, IRoute>(<any>{}, injectors[i]._routes[j]);
+                var route = this.copyRoute<IInternalInjectedRoute>(injectors[i]._routes[j]);
                 route.injector = injectors[i];
                 this._injectedRoutes.push(route);
             }
         }
+    }
+
+    private copyRoute<I extends IRoute>(oldRoute: IRoute): I {
+        var route = Object.assign<I, IRoute>(<I>{}, oldRoute);
+
+        // Over-ride some of hte actions to deal with different exceptions.
+        for (let i = 0; i < route.splitPath.length; ++i) {
+            let matches = route.splitPath[i].match(this._actionRegex);
+            if (matches !== null) {
+                switch (matches[1]) {
+                    case 'action':
+                        route.splitPath[i] = route.key;
+                        break;
+                }
+            }
+        }
+        return route;
     }
 
     public listen(...args: any[]) {
@@ -65,6 +86,7 @@ export class Server {
             let body: any = Buffer.concat(data).toString();
             if (req.headers["content-type"] === 'application/json' && body) body = JSON.parse(body);
 
+            var response = new JsonResult();
             try {
                 if (routes.length > 0) {
                     var result = await this.processRoute(routes[0], parsedUrl, body);
@@ -72,18 +94,20 @@ export class Server {
                         result = await this.processInjector(injectors[i], parsedUrl, body, result);
                     }
 
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.write(result === undefined ? 'null' : JSON.stringify(result));
-                    res.end();
+                    if (result instanceof Result) {
+                        response = result;
+                    } else {
+                        response.body = result;
+                    }
                 } else {
-                    res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.write('{ "message": "Route could not be found" }');
-                    res.end();
+                    response.status = Status.BadRequest;
+                    response.body = { message: 'Route could not be found' };
                 }
             } catch(err) {
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.write('{ "message": "Internal Server Error" }');
-                res.end();
+                response.status = Status.InternalServerError;
+                response.body = { message: 'Internal Server Error' };
+            } finally {
+                response.processResponse(res);
             }
         });
     }
