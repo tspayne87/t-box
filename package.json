@@ -1,0 +1,24 @@
+{
+  "name": "square-one",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app/dist/server.js",
+    "build": "npm run build:internal-server && npm run build:server && npm run build:app",
+    "build:internal-server": "cd internal-server && npm run build",
+    "build:server": "cd server && npm run build",
+    "build:app": "cd app && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tspayne87/square-one.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tspayne87/square-one/issues"
+  },
+  "homepage": "https://github.com/tspayne87/square-one#readme"
+}
