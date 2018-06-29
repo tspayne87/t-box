@@ -1,14 +1,13 @@
 import * as http from 'http';
 import * as url from 'url';
 import * as isPromise from 'is-promise';
-import { Controller } from './controller';
-import { Injector } from './injector';
-import { Method, Status } from './enums';
-import { IInternalRoute, IInternalInjectedRoute, IRoute } from './interfaces';
-import { Result, JsonResult } from './results';
+import { Controller } from '../controller';
+import { Injector } from '../injector';
+import { Method, Status } from '../enums';
+import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
+import { Result, JsonResult } from '../results';
 
-
-export class Server {
+export class InternalServer {
     private _server: http.Server;
     private _routes: IInternalRoute[];
     private _injectedRoutes: IInternalInjectedRoute[];

@@ -1,11 +1,11 @@
-import { Injector } from '../injector';
-import { InjectorClass, DecoratedInjectorClass } from '../declarations';
+import { Controller } from '../Controller';
+import { ControllerClass, DecoratedControllerClass } from '../declarations';
 
-function InjectedRoute<C extends Injector>(path: string): <CC extends InjectorClass<C>>(target: CC) => CC
-function InjectedRoute<CC extends InjectorClass<CC>>(path: string): CC
-function InjectedRoute(path: string): any {
-    return (target: DecoratedInjectorClass): InjectorClass<Injector> => {
-        return class Injector extends target {
+function Route<C extends Controller>(path: string): <CC extends ControllerClass<C>>(target: CC) => CC
+function Route<CC extends ControllerClass<CC>>(path: string): CC
+function Route(path: string): any {
+    return (target: DecoratedControllerClass): ControllerClass<Controller> => {
+        return class Router extends target {
             constructor() {
                 super();
 
@@ -23,4 +23,4 @@ function InjectedRoute(path: string): any {
     }
 }
 
-export { InjectedRoute };
+export { Route };

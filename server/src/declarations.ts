@@ -1,5 +1,5 @@
-import { Controller } from './controller';
-import { Injector } from './injector';
+import { Controller } from './Controller';
+import { Injector } from './Injector';
 import { IRoute } from './interfaces';
 
 export type ControllerClass<C> = { new (...args: any[]): C & Controller } & typeof Controller;

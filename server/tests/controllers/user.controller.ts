@@ -10,8 +10,16 @@ export class UserController extends Controller {
     }
 
     @Get('[action]')
-    public index() {
-        return this.html(`<html><head></head><body><div id="app"></div></body><html>`);
+    public async index() {
+        return this.html(await this.promise());
+    }
+
+    private promise() {
+        return new Promise<string>(resolve => {
+            setTimeout(() => {
+                resolve(`<html><head></head><body><div id="app"></div></body><html>`);
+            }, 1000);
+        });
     }
 
     @Get()

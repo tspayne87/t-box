@@ -1,5 +1,12 @@
-import { Server } from '../../server/dist';
+import { Server } from '@square-one/server';
+let server = new Server();
 
-const server = new Server();
-server.registerControllers(`${__dirname}\\controllers`);
-server.start(8080);
+let boot = async () => {
+    await server.registerControllers(require.context('./modules', true, /\.controller\.ts$/));
+    server.start(8080);
+};
+
+boot();
+process.on('exit', () => {
+    server.stop();
+});
