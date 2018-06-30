@@ -1,5 +1,5 @@
-import { Server } from '@square-one/server';
-let server = new Server();
+import { Server, ProcessMessageLogger } from '@square-one/server';
+let server = new Server(new ProcessMessageLogger());
 
 let boot = async () => {
     await server.registerControllers(require.context('./modules', true, /\.controller\.ts$/));

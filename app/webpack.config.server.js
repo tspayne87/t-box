@@ -5,7 +5,7 @@ const bundleOutputDir = './dist/';
 module.exports = {
     context: __dirname,
     target: 'node',
-    devtool: 'source-map',
+    devtool: 'inline-source-map',
     mode: 'development',
     module: {
         rules: [
@@ -20,6 +20,7 @@ module.exports = {
         'server': [ './src/server.ts' ]
     },
     output: {
+        devtoolModuleFilenameTemplate: '[absolute-resource-path]',
         path: path.join(__dirname, bundleOutputDir),
         filename: '[name].js'
     },

@@ -1,17 +1,14 @@
 import { InternalServer } from './internal';
 import { Controller } from './Controller';
+import { ILogger } from './loggers';
 import * as path from 'path';
 import * as glob from 'glob';
 
 export class Server {
     private _server: InternalServer;
 
-    constructor() {
-        this._server = new InternalServer();
-    }
-
-    public test(context: __WebpackModuleApi.RequireContext) {
-
+    constructor(logger?: ILogger) {
+        this._server = new InternalServer(logger);
     }
 
     public registerControllers(context: string | __WebpackModuleApi.RequireContext): Promise<void> {
