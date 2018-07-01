@@ -1,12 +1,20 @@
 {
   "compilerOptions": {
+    "lib": [
+      "dom",
+      "es5",
+      "es2015",
+      "es2015.promise"
+    ],
     "outDir": "dist",
     "target": "ES6",
-    "module": "commonjs",
+    "module": "es2015",
     "moduleResolution": "node",
     "sourceMap": true,
     "strict": true,
     "noLib": false,
+    "allowSyntheticDefaultImports": true,
+    "skipDefaultLibCheck": true,
     "experimentalDecorators": true,
     "removeComments": false,
     "noImplicitAny": false,

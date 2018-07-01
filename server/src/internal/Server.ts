@@ -6,7 +6,7 @@ import { Injector } from '../injector';
 import { Method, Status } from '../enums';
 import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
 import { Result, JsonResult } from '../results';
-import { ILogger } from '../loggers';
+import { ILogger, ConsoleLogger } from '../loggers';
 
 export class InternalServer {
     private _server: http.Server;
@@ -14,7 +14,7 @@ export class InternalServer {
     private _injectedRoutes: IInternalInjectedRoute[];
     private _paramRegex: RegExp;
     private _actionRegex: RegExp;
-    private _logger?: ILogger;
+    private _logger: ILogger;
 
     private _port: Number;
 
@@ -25,7 +25,7 @@ export class InternalServer {
         this._injectedRoutes = [];
         this._routes = [];
         this._port = 0;
-        this._logger = logger;
+        this._logger = logger ? logger : new ConsoleLogger();
     }
 
     public addControllers(...controllers: Controller[]) {
@@ -68,7 +68,7 @@ export class InternalServer {
     public listen(...args: any[]) {
         this._port = args[0];
         this._server.listen.apply(this._server, args);
-        this.log(`Listening on port: ${this._port}`);
+        this._logger.log(`Listening on port: ${this._port}`);
     }
 
     public close(callback?: Function) {
@@ -186,11 +186,5 @@ export class InternalServer {
             if (includeRoute) routes.push(possibleRoutes[i]);
         }
         return routes;
-    }
-
-    private log(message: string): void {
-        if (this._logger !== undefined && this._logger !== undefined) {
-            this._logger.log(message);
-        }
     }
 }

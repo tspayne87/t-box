@@ -1,6 +1,6 @@
 import { ILogger } from './ILogger';
 
-export class ProcessMessageLogger implements ILogger {
+export class ConsoleLogger implements ILogger {
     public log(message: string) {
         this.sendMessage(message, 'log');
     }
@@ -14,8 +14,6 @@ export class ProcessMessageLogger implements ILogger {
     }
 
     private sendMessage(message: string, type: string) {
-        if (process.send !== undefined) {
-            process.send({ message, type });
-        }
+        console.log(message);
     }
 }

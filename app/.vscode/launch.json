@@ -6,13 +6,9 @@
     "configurations": [
         {
             "type": "node",
-            "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceFolder}/src/server.ts",
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js",
-            ],
-            "sourceMaps": true
+            "request": "attach",
+            "name": "Debug Server",
+            "port": 9229
         }
     ]
 }

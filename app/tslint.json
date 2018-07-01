@@ -1,5 +1,9 @@
 {
     "rules": {
+        "member-access": [
+            true,
+            "check-accessor"
+        ],
         "class-name": true,
         "comment-format": [
             true,
@@ -7,7 +11,8 @@
         ],
         "indent": [
             true,
-            "spaces"
+            "spaces",
+            4
         ],
         "no-duplicate-variable": true,
         "no-eval": true,

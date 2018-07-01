@@ -2,23 +2,22 @@ import { Controller, Route, Get, Post } from '@square-one/server';
 
 @Route('user')
 export class UserController extends Controller {
-
     @Get()
-    public search() {
+    public search () {
         return 'Searching';
     }
 
     @Get('{id}')
-    public getUser(id: string) {
+    public getUser (id: string) {
         return this.data();
     }
 
     @Post()
-    public saveUser(user: any) {
+    public saveUser (user: any) {
         return user;
     }
 
-    public data() {
+    public data () {
         return {
             username: 'agrisom',
             firstname: 'Alex',

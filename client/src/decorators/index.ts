@@ -1,0 +1,1 @@
+export { ComponentRoute } from './ComponentRoute';
