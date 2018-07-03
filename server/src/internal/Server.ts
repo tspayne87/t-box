@@ -5,7 +5,7 @@ import { Controller } from '../controller';
 import { Injector } from '../injector';
 import { Method, Status } from '../enums';
 import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
-import { Result, JsonResult } from '../results';
+import { Result, JsonResult, HtmlResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
 
 export class InternalServer {
@@ -103,8 +103,7 @@ export class InternalServer {
                         response.body = result;
                     }
                 } else {
-                    response.status = Status.BadRequest;
-                    response.body = { message: 'Route could not be found' };
+                    response = new HtmlResult('<html><head><title>Test Title</title></head><body><div id="app"><router-view>Loading...</router-view></div><script type="text/javascript" src="/client.js"></script></body></html>');
                 }
             } catch(err) {
                 response.status = Status.InternalServerError;

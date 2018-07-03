@@ -7,6 +7,7 @@ const tsProject = ts.createProject('tsconfig.json');
 const utils = require('gulp-util');
 const sourcemaps = require('gulp-sourcemaps');
 const tslint = require('gulp-tslint');
+const runSequence = require('run-sequence');
 let node;
 let server;
 
@@ -39,8 +40,8 @@ gulp.task('server', function() {
 // Watch the server and build out and re-create the server on changes
 gulp.task('watch.server', ['build.server'], function() {
     gulp.start('server');
-    gulp.watch(serverFiles, ['build.server'], () => {
-        gulp.start('server');
+    gulp.watch(serverFiles, function() {
+        runSequence('build.server', 'server');
     });
 });
 

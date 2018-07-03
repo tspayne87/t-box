@@ -5,15 +5,16 @@ import { RouteConfig } from 'vue-router';
 type VueClass<V> = { new (...args: any[]): V & Vue } & typeof Vue
 
 interface ComponentRouteOptions<V extends Vue> extends ComponentOptions<V> {
-    route?: RouteConfig;
+    route: RouteConfig;
 }
 
-function ComponentRoute<V extends Vue>(options: ComponentRouteOptions<V> & ThisType<V>): <VC extends VueClass<V>>(target: VC) => VC
-function ComponentRoute<VC extends VueClass<Vue>>(target: VC): VC
-function ComponentRoute(options: ComponentRouteOptions<Vue> | VueClass<Vue>): any {
-    var component = Component(options);
-    console.log(component);
-    return component;
+function ComponentRoute(options: ComponentRouteOptions<Vue>): any {
+    let processor = Component(options);
+    return (...args: any[]) => {
+        let Component = processor.apply(null, args);
+        Component.__so_route = options.route;
+        return Component;
+    }
 }
 
 export { ComponentRoute };

@@ -1,6 +1,6 @@
 import { Controller, Route, Get, Post } from '@square-one/server';
 
-@Route('user')
+@Route('api/user')
 export class UserController extends Controller {
     @Get()
     public search () {

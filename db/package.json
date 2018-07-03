@@ -1,5 +1,5 @@
 {
-  "name": "@square-one/client",
+  "name": "@square-one/db",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,19 +12,21 @@
   "devDependencies": {
     "@types/chai": "^4.1.4",
     "@types/mocha": "^5.2.4",
+    "@types/node": "^10.5.1",
+    "@types/sequelize": "^4.27.23",
     "@types/webpack-env": "^1.13.6",
     "chai": "^4.1.2",
     "gulp": "^3.9.1",
+    "gulp-mocha": "^6.0.0",
     "gulp-typescript": "^5.0.0-alpha.2",
     "merge2": "^1.2.2",
     "mocha": "^5.2.0",
     "ts-node": "^7.0.0",
-    "typescript": "^2.9.2",
-    "vue": "^2.5.16"
+    "typescript": "^2.9.2"
   },
   "dependencies": {
-    "vue-class-component": "^6.2.0",
-    "vue-property-decorator": "^7.0.0",
-    "vue-router": "^3.0.1"
+    "sequelize": "^4.38.0",
+    "sequelize-msnodesqlv8": "^0.2.6-beta.7",
+    "tedious": "^2.6.1"
   }
 }

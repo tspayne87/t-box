@@ -1,12 +1,20 @@
 <template lang='pug'>
-    div User Search
+    div Why are there X's Joe
 </template>
 
 <script lang='ts'>
     import Vue from 'vue';
-    import Component from 'vue-class-component';
+    import { ComponentRoute } from '@square-one/client';
 
+    @ComponentRoute({
+        route: {
+            path: '/user'
+        }
+    })
     export default class UserSearch extends Vue {
+        public mounted() {
+            console.log('Why are there X\'s Joe');
+        }
     }
 </script>
 

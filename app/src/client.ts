@@ -1,5 +1,8 @@
-let files = require.context('./modules', true, /\.vue$/);
+import { Application } from '@square-one/client';
 
-let clientCache: any = {};
-files.keys().forEach(key => clientCache[key] = files(key));
-console.log(clientCache);
+let boot = async () => {
+    let app = new Application();
+    await app.registerComponents(require.context('./modules', true, /\.vue$/));
+    app.boot();
+};
+boot();
