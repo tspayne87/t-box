@@ -1,5 +1,5 @@
 <template lang='pug'>
-    div Why are there X's Joe
+    a(href='mailto:tspayne87@gmail.com') tspayne87@gmail.com
 </template>
 
 <script lang='ts'>

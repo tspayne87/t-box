@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import 'mocha';
-import { Server } from '../src';
+import { InternalServer } from '../src/internal';
 import { UserController } from './controllers/user.controller';
 import { UserInjection } from './injectors/user.injector';
 import { Http } from './utils';
@@ -10,7 +10,7 @@ describe('{Injection}:/user', function() {
     let port = 8000;
 
     let http = new Http();
-    let server = new Server();
+    let server = new InternalServer();
     server.addControllers(new UserController());
     server.addInjectors(new UserInjection());
 

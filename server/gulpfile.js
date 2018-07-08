@@ -1,6 +1,7 @@
 const gulp = require('gulp');
 const ts = require('gulp-typescript');
 const tsProject = ts.createProject('tsconfig.json');
+const testTsProject = ts.createProject('test/tsconfig.json');
 const merge = require('merge2');
 
 gulp.task('build', ['compile', 'copy']);
