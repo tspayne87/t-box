@@ -1,5 +1,6 @@
 import { FindOptions } from 'sequelize';
-import { Spec, ModelByIdSpec } from './specs';
+import { ModelByIdSpec, Spec } from './specs';
+import { Query } from './Query';
 import { Model, ModelClass, DecoratedModelClass } from './Model';
 import { Connection } from './Connection';
 
@@ -11,16 +12,26 @@ export abstract class Service<TModel extends Model> {
     public constructor(private _connection: Connection) {
     }
 
-    public async findAll(spec?: Spec<TModel>) {
-        let options: FindOptions<TModel> = {};
-        if (spec !== undefined) options.where = spec.parse();
-        return await this.Model.findAll(options);
+    public async findAll(query?: Query<TModel> | Spec<TModel>) {
+        if (query === undefined) {
+            return await this.Model.findAll();
+        } else if (query instanceof Query) {
+            return await this.Model.findAll(query.options);
+        } else if (query instanceof Spec) {
+            return await this.Model.findAll({ where: query.where() });
+        }
+        return [];
     }
 
-    public async findOne(spec?: Spec<TModel>) {
-        let options: FindOptions<TModel> = {};
-        if (spec !== undefined) options.where = spec.parse();
-        return await this.Model.findOne(options);
+    public async findOne(query?: Query<TModel> | Spec<TModel>) {
+        if (query === undefined) {
+            return await this.Model.findOne();
+        } else if (query instanceof Query) {
+            return await this.Model.findOne(query.options);
+        } else if (query instanceof Spec) {
+            return await this.Model.findOne({ where: query.where() });
+        }
+        return null;
     }
 
     public async save(...models: TModel[]) {

@@ -1,13 +1,15 @@
 import { WhereOptions, Op } from 'sequelize';
-import * as Tokenizr from 'tokenizr';
+import { tokenizeArrowFunc } from '../util';
+import { Token } from '../lexor';
 import { Model } from '../Model';
 
 export class Spec<T extends Model> {
-    constructor(private _spec: (item: T) => any, private _vars?: { [key:string]: any }) {
+    constructor(private _spec: (item: T) => boolean, private _vars?: { [key:string]: any }) {
     }
 
-    public parse(): WhereOptions<T> {
-        let parsedTokens = this.parseTokens(this.tokens());
+    public where(): WhereOptions<T> {
+        let tokens = tokenizeArrowFunc(this._spec.toString());
+        let parsedTokens = this.parseTokens(tokens);
         return this.generateWhere(parsedTokens);
     }
 
@@ -42,7 +44,7 @@ export class Spec<T extends Model> {
         }
         else if (item.type === 'var') {
             if (!this._vars) throw 'Variables need to be passed in if you want to use the variable feature';
-            if (this._vars && !this._vars[item.value]) throw 'Variable could not be found for use in the spec';
+            if (this._vars && !this._vars.hasOwnProperty(item.value)) throw 'Variable could not be found for use in the spec';
             return this._vars[item.value];
         } else if (item.type === 'val') {
             return eval(item.value);
@@ -64,7 +66,7 @@ export class Spec<T extends Model> {
         throw `Operator [${op.type}] could not be generated`;
     }
 
-    private parseTokens(tokens) {
+    private parseTokens(tokens: Token[]) {
         let data: any[] = [];
 
         let inner = 0;
@@ -105,60 +107,5 @@ export class Spec<T extends Model> {
             }
         }
         return data;
-    }
-
-    private tokens() {
-        let lexor = new Tokenizr();
-        let param = '';
-        lexor.rule(/^.*=>/, (ctx, match) => {
-            param = match[0].replace('=>', '').trim();
-            ctx.ignore();
-        });
-
-        //#region Rules for operators
-        lexor.rule(/&&/, ctx => ctx.accept('and'));
-        lexor.rule(/\|\|/, ctx => ctx.accept('or'));
-        lexor.rule(/==+/, ctx => ctx.accept('eq'));
-        lexor.rule(/!=+/, ctx => ctx.accept('ne'));
-        lexor.rule(/>=*/, (ctx, match) => ctx.accept(/=/.test(match[0]) ? 'gte' : 'gt'));
-        lexor.rule(/<=*/, (ctx, match) => ctx.accept(/=/.test(match[0]) ? 'lte' : 'lt'));
-        lexor.rule(/!/, ctx => ctx.accept('not'));
-        //#endregion
-
-        //#region Rules for Parentheses
-        lexor.rule(/\(/, ctx => ctx.accept('opar'));
-        lexor.rule(/\)/, ctx => ctx.accept('cpar'));
-        //#endregion
-
-        //#region Rules for values
-        lexor.rule(/['|"].*['|"]/, (ctx, match) => ctx.accept('val', match[0].trim()));
-        lexor.rule(/ *new .*\(.*\)/, (ctx, match) => ctx.accept('val', match[0].trim()));
-        //#endregion
-
-        //#region Rules for reference, functions and variables
-        lexor.rule(/ *[a-zA-Z\.]*\([a-zA-Z\.,]*\)/, (ctx, match) => {
-            let value = match[0].trim();
-            if (value === '') return ctx.ignore();
-            if (value.indexOf(`${param}.`) === -1) {
-                ctx.accept('var', value);
-            } else {
-                ctx.accept('ref', value.replace(`${param}.`, ''));
-            }
-        });
-
-        lexor.rule(/ *[a-zA-Z\.]*/, (ctx, match) => {
-            let value = match[0].trim();
-            if (value === '') return ctx.ignore();
-            if (value.indexOf(`${param}.`) === -1) {
-                ctx.accept('var', value);
-            } else {
-                ctx.accept('ref', value.replace(`${param}.`, ''));
-            }
-        });
-        //#endregion
-
-        let func = this._spec.toString().replace(/(\r\n|\r|\n)/g, '').trim();
-        lexor.input(func);
-        return lexor.tokens();
     }
 }

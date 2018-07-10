@@ -1,8 +1,8 @@
-import { Table, Column } from '../../src';
-import { BaseModel } from './base.model';
+import { Address } from './address.model';
+import { Table, Column, Model, HasMany } from '../../src';
 
 @Table('person')
-export class Person extends BaseModel {
+export class Person extends Model {
 
     @Column()
     public FirstName!: string;
@@ -12,4 +12,7 @@ export class Person extends BaseModel {
 
     @Column()
     public Birthday!: Date;
+
+    @HasMany(Address)
+    public Addresses!: Address[];
 }

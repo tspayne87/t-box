@@ -1,2 +1,3 @@
 export { Table } from './Table';
-export { Column } from './Column';
+export { Column, COLUMN } from './Column';
+export { HasMany, HASMANY } from './HasMany';
