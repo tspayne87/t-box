@@ -38,6 +38,7 @@ export function tokenizeArrowFunc(arrowFunc: string) {
 
     //#region Rules for values
     lexor.singleRule(/^null/, () => ({ accept: 'val' }));
+    lexor.singleRule(/^undefined/, () => ({ accept: 'val', value: null }));
     lexor.singleRule(/^new .*\(.*\)/, () => ({ accept: 'val' }));
     //#endregion
 

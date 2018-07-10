@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { col, literal, Model as DbModel, FindOptions, IncludeOptions } from 'sequelize'
-import { Spec } from './specs';
+import { Specification } from './specifications';
 import { HASMANY } from './decorators';
 import { Connection } from './Connection';
 import { tokenizeArrowFunc } from './util';
@@ -12,7 +12,7 @@ export class Query<T extends Model> {
     constructor(private _db: Connection, private _constructor: ModelClass<T>) {
     }
 
-    public where(spec: Spec<T>) {
+    public where(spec: Specification<T>) {
         this.options.where = spec.where();
         return this;
     }
@@ -31,7 +31,7 @@ export class Query<T extends Model> {
         return this;
     }
 
-    public include<TInclude extends Model>(include: (item: T) => TInclude | TInclude[], spec?: Spec<TInclude>) {
+    public include<TInclude extends Model>(include: (item: T) => TInclude | TInclude[], spec?: Specification<TInclude>) {
         let tokens = tokenizeArrowFunc(include.toString());
         if (tokens.length !== 1) throw 'Include cannot deal with multiple include statements.';
         this.options.include = this.options.include || [];

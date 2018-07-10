@@ -3,7 +3,7 @@ import { tokenizeArrowFunc } from '../util';
 import { Token } from '../lexor';
 import { Model } from '../Model';
 
-export class Spec<T extends Model> {
+export class Specification<T extends Model> {
     constructor(private _spec: (item: T) => boolean, private _vars?: { [key:string]: any }) {
     }
 

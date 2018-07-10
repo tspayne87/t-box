@@ -1,5 +1,5 @@
 export class RuleResult {
     ignore?: boolean;
     accept?: string;
-    value?: string;
+    value?: string | null;
 }

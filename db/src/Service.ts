@@ -1,5 +1,5 @@
 import { FindOptions } from 'sequelize';
-import { ModelByIdSpec, Spec } from './specs';
+import { ModelByIdSpecification, Specification } from './specifications';
 import { Query } from './Query';
 import { Model, ModelClass, DecoratedModelClass } from './Model';
 import { Connection } from './Connection';
@@ -12,23 +12,23 @@ export abstract class Service<TModel extends Model> {
     public constructor(private _connection: Connection) {
     }
 
-    public async findAll(query?: Query<TModel> | Spec<TModel>) {
+    public async findAll(query?: Query<TModel> | Specification<TModel>) {
         if (query === undefined) {
             return await this.Model.findAll();
         } else if (query instanceof Query) {
             return await this.Model.findAll(query.options);
-        } else if (query instanceof Spec) {
+        } else if (query instanceof Specification) {
             return await this.Model.findAll({ where: query.where() });
         }
         return [];
     }
 
-    public async findOne(query?: Query<TModel> | Spec<TModel>) {
+    public async findOne(query?: Query<TModel> | Specification<TModel>) {
         if (query === undefined) {
             return await this.Model.findOne();
         } else if (query instanceof Query) {
             return await this.Model.findOne(query.options);
-        } else if (query instanceof Spec) {
+        } else if (query instanceof Specification) {
             return await this.Model.findOne({ where: query.where() });
         }
         return null;
@@ -37,7 +37,7 @@ export abstract class Service<TModel extends Model> {
     public async save(...models: TModel[]) {
         let savedModels: TModel[] = [];
         for (let i = 0; i < models.length; ++i) {
-            let model = await this.findOne(new ModelByIdSpec<TModel>(models[i].id));
+            let model = await this.findOne(new ModelByIdSpecification<TModel>(models[i].id));
             if (model === null) {
                 savedModels.push(await this.Model.create(models[i]));
             } else {
@@ -50,7 +50,7 @@ export abstract class Service<TModel extends Model> {
 
     public async destroy(...models: TModel[]) {
         for (let i = 0; i < models.length; ++i) {
-            let model = await this.findOne(new ModelByIdSpec<TModel>(models[i].id));
+            let model = await this.findOne(new ModelByIdSpecification<TModel>(models[i].id));
             if (model !== null) {
                 await (<any>model).destroy();
             }
