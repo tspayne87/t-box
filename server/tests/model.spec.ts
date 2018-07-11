@@ -33,7 +33,7 @@ describe('Connection - Tests', function() {
         let person = new Person();
         person.FirstName = 'John';
         person.LastName = 'Doe';
-        person.Birthday = new Date(2000,1,1);
+        person.Birthday = new Date(2000, 1, 1);
 
         service.save(person)
             .then((person) => {
@@ -60,7 +60,7 @@ describe('Connection - Tests', function() {
                 if (result !== null) {
                     assert.equal(result.FirstName, 'John');
                     assert.equal(result.LastName, 'Doe');
-                    assert.equal(new Date(result.Birthday).toString(), new Date(2000,1,1).toString());
+                    assert.equal(new Date(result.Birthday).toString(), new Date(2000, 1, 1).toString());
 
                     assert.equal(result.Addresses[0].Line1, '2293 Some Street');
                     assert.equal(result.Addresses[0].City, 'Some City');
