@@ -9,8 +9,8 @@ export function Column(options?: Sequelize.DefineAttributeColumnOptions) {
     return (target: any, property: string) => {
         addModelProperty(target, property);
         if (options === undefined) {
-            var type = Reflect.getMetadata('design:type', target, property);
-            switch(type) {
+            let type = Reflect.getMetadata('design:type', target, property);
+            switch (type) {
                 case String:
                     finalOptions.type = Sequelize.STRING;
                     break;
@@ -28,5 +28,5 @@ export function Column(options?: Sequelize.DefineAttributeColumnOptions) {
 
         // Set into reflection
         Reflect.defineMetadata(COLUMN, finalOptions, target, property);
-    }
+    };
 }

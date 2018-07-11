@@ -1,8 +1,8 @@
 import { Controller } from '../Controller';
 import { ControllerClass, DecoratedControllerClass } from '../declarations';
 
-function Route<C extends Controller>(path: string): <CC extends ControllerClass<C>>(target: CC) => CC
-function Route<CC extends ControllerClass<CC>>(path: string): CC
+function Route<C extends Controller>(path: string): <CC extends ControllerClass<C>>(target: CC) => CC;
+function Route<CC extends ControllerClass<CC>>(path: string): CC;
 function Route(path: string): any {
     return (target: DecoratedControllerClass): ControllerClass<Controller> => {
         return class Router extends target {
@@ -19,8 +19,8 @@ function Route(path: string): any {
                     }
                 }
             }
-        }
-    }
+        };
+    };
 }
 
 export { Route };

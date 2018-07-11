@@ -1,8 +1,8 @@
 import { Injector } from '../Injector';
 import { InjectorClass, DecoratedInjectorClass } from '../declarations';
 
-function InjectedRoute<C extends Injector>(path: string): <CC extends InjectorClass<C>>(target: CC) => CC
-function InjectedRoute<CC extends InjectorClass<CC>>(path: string): CC
+function InjectedRoute<C extends Injector>(path: string): <CC extends InjectorClass<C>>(target: CC) => CC;
+function InjectedRoute<CC extends InjectorClass<CC>>(path: string): CC;
 function InjectedRoute(path: string): any {
     return (target: DecoratedInjectorClass): InjectorClass<Injector> => {
         return class Injector extends target {
@@ -19,8 +19,8 @@ function InjectedRoute(path: string): any {
                     }
                 }
             }
-        }
-    }
+        };
+    };
 }
 
 export { InjectedRoute };

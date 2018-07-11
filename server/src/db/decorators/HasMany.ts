@@ -12,4 +12,4 @@ export function HasMany<TModel extends Model>(model: ModelClass<TModel>, options
         hasManyOptions.as = property;
         Reflect.defineMetadata(HASMANY, { table: (<any>model).__table_name__, options: hasManyOptions }, target, property);
     };
-};
+}

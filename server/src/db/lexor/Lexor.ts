@@ -23,7 +23,7 @@ export class Lexor {
 
     public parse(str: string) {
         let tokens: Token[] = [];
-        while(str.length > 0) {
+        while (str.length > 0) {
             let foundMatch = false;
             for (let i = 0; i < this._rules.length; ++i) {
                 let rule: any = this._rules[i];

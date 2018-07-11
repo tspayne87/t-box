@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { col, literal, Model as DbModel, FindOptions, IncludeOptions } from 'sequelize'
+import { col, literal, Model as DbModel, FindOptions, IncludeOptions } from 'sequelize';
 import { Specification } from './specifications';
 import { HASMANY } from './decorators';
 import { Connection } from './Connection';

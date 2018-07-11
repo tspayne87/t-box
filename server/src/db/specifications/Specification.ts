@@ -4,7 +4,7 @@ import { Token } from '../lexor';
 import { Model } from '../Model';
 
 export class Specification<T extends Model> {
-    constructor(private _spec: (item: T) => boolean, private _vars?: { [key:string]: any }) {
+    constructor(private _spec: (item: T) => boolean, private _vars?: { [key: string]: any }) {
     }
 
     public where(): WhereOptions<T> {
@@ -19,7 +19,7 @@ export class Specification<T extends Model> {
         } else {
             let op = this.getOperator(parsedTokens[1].op);
             let conditions: any[] = [];
-            for(let i = 0; i < parsedTokens.length; i+=2) {
+            for (let i = 0; i < parsedTokens.length; i += 2) {
                 if (parsedTokens[i].length === undefined) {
                     conditions.push(this.generateClause(parsedTokens[i]));
                 } else {
@@ -52,7 +52,7 @@ export class Specification<T extends Model> {
     }
 
     private getOperator(op): symbol {
-        switch(op.type) {
+        switch (op.type) {
             case 'and': return Op.and;
             case 'or': return Op.or;
             case 'gt': return Op.gt;
@@ -92,11 +92,11 @@ export class Specification<T extends Model> {
                     if (token.type === 'ref') {
                         data.push({ left: token, op: tokens[++i], right: tokens[++i] });
                     } else {
-                        var op = tokens[++i];
-                        var left = tokens[++i];
+                        let op = tokens[++i];
+                        let left = tokens[++i];
                         data.push({ left, op, right: token });
                     }
-                } else if(token.type === 'not') {
+                } else if (token.type === 'not') {
                     data.push({ op: token, right: tokens[++i] });
                 } else if (token.type === 'and' || token.type === 'or') {
                     data.push({ op: token });

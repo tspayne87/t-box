@@ -31,7 +31,7 @@ export class InternalServer {
     public addControllers(...controllers: Controller[]) {
         for (let i = 0; i < controllers.length; ++i) {
             for (let j = 0; j < controllers[i]._routes.length; ++j) {
-                var route = this.copyRoute<IInternalRoute>(controllers[i]._routes[j]);
+                let route = this.copyRoute<IInternalRoute>(controllers[i]._routes[j]);
                 route.controller = controllers[i];
                 this._routes.push(route);
             }
@@ -41,7 +41,7 @@ export class InternalServer {
     public addInjectors(...injectors: Injector[]) {
         for (let i = 0; i < injectors.length; ++i) {
             for (let j = 0; j < injectors[i]._routes.length; ++j) {
-                var route = this.copyRoute<IInternalInjectedRoute>(injectors[i]._routes[j]);
+                let route = this.copyRoute<IInternalInjectedRoute>(injectors[i]._routes[j]);
                 route.injector = injectors[i];
                 this._injectedRoutes.push(route);
             }
@@ -49,7 +49,7 @@ export class InternalServer {
     }
 
     private copyRoute<I extends IRoute>(oldRoute: IRoute): I {
-        var route = Object.assign<I, IRoute>(<I>{}, oldRoute);
+        let route = Object.assign<I, IRoute>(<I>{}, oldRoute);
 
         // Over-ride some of hte actions to deal with different exceptions.
         for (let i = 0; i < route.splitPath.length; ++i) {
@@ -76,9 +76,9 @@ export class InternalServer {
     }
 
     private handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
-        var parsedUrl = url.parse((req.url || '').substr(1));
-        var routes = this.getRoutes(parsedUrl, req.method || '', this._routes);
-        var injectors = this.getRoutes(parsedUrl, req.method || '', this._injectedRoutes);
+        let parsedUrl = url.parse((req.url || '').substr(1));
+        let routes = this.getRoutes(parsedUrl, req.method || '', this._routes);
+        let injectors = this.getRoutes(parsedUrl, req.method || '', this._injectedRoutes);
 
         let data: any[] = [];
         req.on('data', (chunk) => {
@@ -87,12 +87,12 @@ export class InternalServer {
 
         req.on('end', async () => {
             let body: any = Buffer.concat(data).toString();
-            if (req.headers["content-type"] === 'application/json' && body) body = JSON.parse(body);
+            if (req.headers['content-type'] === 'application/json' && body) body = JSON.parse(body);
 
-            var response = new JsonResult();
+            let response = new JsonResult();
             try {
                 if (routes.length > 0) {
-                    var result = await this.processRoute(routes[0], parsedUrl, body);
+                    let result = await this.processRoute(routes[0], parsedUrl, body);
                     for (let i = 0; i < injectors.length; ++i) {
                         result = await this.processInjector(injectors[i], parsedUrl, body, result);
                     }
@@ -105,7 +105,7 @@ export class InternalServer {
                 } else {
                     response = new HtmlResult('<html><head><title>Test Title</title></head><body><div id="app"><router-view>Loading...</router-view></div><script type="text/javascript" src="/client.js"></script></body></html>');
                 }
-            } catch(err) {
+            } catch (err) {
                 response.status = Status.InternalServerError;
                 response.body = { message: 'Internal Server Error' };
             } finally {
@@ -116,7 +116,7 @@ export class InternalServer {
 
     private processRoute(route: IInternalRoute, parsedUrl: url.UrlWithStringQuery, body: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            var response = route.controller[route.key].apply(route.controller, this.processArguments(route, body, parsedUrl));
+            let response = route.controller[route.key].apply(route.controller, this.processArguments(route, body, parsedUrl));
             if (isPromise(response)) {
                 response
                     .then(result => resolve(result))
@@ -129,7 +129,7 @@ export class InternalServer {
 
     private processInjector(injectedRoute: IInternalInjectedRoute, parsedUrl: url.UrlWithStringQuery, body: any, result: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            var response = injectedRoute.injector[injectedRoute.key].call(injectedRoute.injector, result);
+            let response = injectedRoute.injector[injectedRoute.key].call(injectedRoute.injector, result);
             if (isPromise(response)) {
                 response
                     .then(result => resolve(result))
@@ -144,15 +144,15 @@ export class InternalServer {
         if (route.params.length === 0) return [];
         if (route.params.length === 1 && body) return [ body ];
 
-        var splitPath = parsedUrl.path === null || parsedUrl.path === undefined ? [] : parsedUrl.path.split('/');
-        var fromRoute: { [key: string]: string } = {};
+        let splitPath = parsedUrl.path === null || parsedUrl.path === undefined ? [] : parsedUrl.path.split('/');
+        let fromRoute: { [key: string]: string } = {};
         for (let i = 0; i < splitPath.length; ++i) {
-            var matches = route.splitPath[i].match(this._paramRegex);
+            let matches = route.splitPath[i].match(this._paramRegex);
             if (matches !== null) {
                 fromRoute[matches[1]] = splitPath[i];
             }
         }
-        var args: string[] = [];
+        let args: string[] = [];
         for (let i = 0; i < route.params.length; ++i) {
             if (body && fromRoute[route.params[i]] === undefined)args.push(body[route.params[i]]);
             else args.push(fromRoute[route.params[i]]);
@@ -161,8 +161,8 @@ export class InternalServer {
     }
 
     private getRoutes<R extends IRoute>(parsedUrl: url.UrlWithStringQuery, method: string, allRoutes: R[]): R[] {
-        var splitPath = parsedUrl.path === null || parsedUrl.path === undefined ? [] : parsedUrl.path.split('/');
-        var possibleRoutes = allRoutes.filter(x => x.splitPath.length == splitPath.length);
+        let splitPath = parsedUrl.path === null || parsedUrl.path === undefined ? [] : parsedUrl.path.split('/');
+        let possibleRoutes = allRoutes.filter(x => x.splitPath.length === splitPath.length);
         switch (method) {
             case 'GET':
                 possibleRoutes = possibleRoutes.filter(x => x.method === Method.Get);
@@ -175,9 +175,9 @@ export class InternalServer {
                 break;
         }
 
-        var routes: R[] = [];
+        let routes: R[] = [];
         for (let i = 0; i < possibleRoutes.length; ++i) {
-            var includeRoute = true;
+            let includeRoute = true;
             for (let j = 0; j < possibleRoutes[i].splitPath.length && includeRoute; ++j) {
                 if (possibleRoutes[i].splitPath[j] !== splitPath[j] && possibleRoutes[i].splitPath[j].match(this._paramRegex) === null)
                     includeRoute = false;

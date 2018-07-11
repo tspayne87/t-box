@@ -7,7 +7,7 @@ import { Model, ModelClass, DecoratedModelClass } from './Model';
 export class Connection {
     private _db!: Sequelize.Sequelize;
     private _modelClasses: DecoratedModelClass[] = [];
-    private _models: { [key:string]: Sequelize.Model<any, any> } = {};
+    private _models: { [key: string]: Sequelize.Model<any, any> } = {};
 
     public addModels(...models: ModelClass<any>[]) {
         for (let i = 0; i < models.length; ++i) {

@@ -10,4 +10,4 @@ export class Model {
 export type ModelClass<C> = { new (...args: any[]): C & Model } & typeof Model;
 export type DecoratedModelClass = ModelClass<Model> & {
     __table_name__: string;
-}
+};

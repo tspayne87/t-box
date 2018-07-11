@@ -1,3 +1,4 @@
+export * from './db';
 export * from './decorators';
 export * from './loggers';
 export { Controller } from './Controller';
