@@ -1,11 +1,15 @@
 import { FindOptions } from 'sequelize';
 import { ModelByIdSpecification, Specification } from './specifications';
 import { Query } from './Query';
-import { Model, ModelClass, DecoratedModelClass } from './Model';
+import { Model, IModel } from './Model';
 import { Connection } from './Connection';
 
+export interface IService<T extends Model> {
+    new (connection: Connection, ...args: any[]): Service<T>;
+}
+
 export abstract class Service<TModel extends Model> {
-    protected abstract _model: ModelClass<TModel>;
+    protected abstract _model: IModel;
 
     private get Model() { return this._connection.model<TModel>((<any>this._model).__table_name__); }
 

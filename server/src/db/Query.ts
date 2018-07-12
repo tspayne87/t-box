@@ -4,12 +4,12 @@ import { Specification } from './specifications';
 import { HASMANY } from './decorators';
 import { Connection } from './Connection';
 import { tokenizeArrowFunc } from './util';
-import { Model, ModelClass } from './Model';
+import { Model, IModel } from './Model';
 
 export class Query<T extends Model> {
     public options: FindOptions<T> = {};
 
-    constructor(private _db: Connection, private _constructor: ModelClass<T>) {
+    constructor(private _db: Connection, private _constructor: IModel) {
     }
 
     public where(spec: Specification<T>) {

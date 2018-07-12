@@ -1,12 +1,13 @@
 import { IRoute } from './interfaces';
 import { HtmlResult } from './results';
 
-export class Controller {
-    public _routes: IRoute[];
+export interface IController {
+    new (...args: any[]): Controller;
+    __routes__?: IRoute[];
+}
 
-    public constructor() {
-        this._routes = [];
-    }
+export class Controller {
+    public _routes: IRoute[] = [];
 
     public html(html: string): HtmlResult {
         return new HtmlResult(html);

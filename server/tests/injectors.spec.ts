@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import 'mocha';
 import { InternalServer } from '../src/internal';
+import { Connection } from '../src';
 import { UserController } from './controllers/user.controller';
 import { UserInjection } from './injectors/user.injector';
 import { Http } from './utils';
@@ -8,10 +9,11 @@ import { Http } from './utils';
 describe('{Injection}:/user', function() {
     let id = '4543-38483-29983-2093';
     let port = 8000;
+    const conn = new Connection();
 
     let http = new Http();
-    let server = new InternalServer();
-    server.addControllers(new UserController());
+    let server = new InternalServer(conn);
+    server.addControllers(UserController);
     server.addInjectors(new UserInjection());
 
     before(function () {

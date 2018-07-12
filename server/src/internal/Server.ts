@@ -1,12 +1,14 @@
+import 'reflect-metadata';
 import * as http from 'http';
 import * as url from 'url';
 import * as isPromise from 'is-promise';
-import { Controller } from '../controller';
-import { Injector } from '../injector';
+import { IController } from '../controller';
+import { IInjector } from '../injector';
 import { Method, Status } from '../enums';
 import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
 import { Result, JsonResult, HtmlResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
+import { IService, Model, IModel, Connection } from '../db';
 
 export class InternalServer {
     private _server: http.Server;
@@ -16,9 +18,11 @@ export class InternalServer {
     private _actionRegex: RegExp;
     private _logger: ILogger;
 
+    private _injectables: any[];
+
     private _port: Number;
 
-    constructor(logger?: ILogger) {
+    constructor(private _sqlConnection: Connection, logger?: ILogger) {
         this._server = http.createServer(this.handleRequest.bind(this));
         this._paramRegex = /{(.*)}/;
         this._actionRegex = /\[(.*)\]/;
@@ -26,26 +30,58 @@ export class InternalServer {
         this._routes = [];
         this._port = 0;
         this._logger = logger ? logger : new ConsoleLogger();
+
+        this._injectables = [ this._sqlConnection ];
     }
 
-    public addControllers(...controllers: Controller[]) {
+    public addControllers(...controllers: IController[]) {
         for (let i = 0; i < controllers.length; ++i) {
-            for (let j = 0; j < controllers[i]._routes.length; ++j) {
-                let route = this.copyRoute<IInternalRoute>(controllers[i]._routes[j]);
-                route.controller = controllers[i];
+            let args = this.getDependencyInjections(controllers[i]);
+            let controller = new controllers[i](...args);
+            for (let j = 0; j < controller._routes.length; ++j) {
+                let route = this.copyRoute<IInternalRoute>(controller._routes[j]);
+                route.controller = controller;
                 this._routes.push(route);
             }
         }
     }
 
-    public addInjectors(...injectors: Injector[]) {
+    public addInjectors(...injectors: IInjector[]) {
         for (let i = 0; i < injectors.length; ++i) {
-            for (let j = 0; j < injectors[i]._routes.length; ++j) {
-                let route = this.copyRoute<IInternalInjectedRoute>(injectors[i]._routes[j]);
-                route.injector = injectors[i];
+            let args = this.getDependencyInjections(injectors[i]);
+            let injector = new injectors[i](...args);
+            for (let j = 0; j < injector._routes.length; ++j) {
+                let route = this.copyRoute<IInternalInjectedRoute>(injector._routes[j]);
+                route.injector = injector;
                 this._injectedRoutes.push(route);
             }
         }
+    }
+
+    public addService<T extends Model>(service: IService<T>) {
+        let args = this.getDependencyInjections(service);
+        args.shift();
+        this._injectables.push(new service(this._sqlConnection, ...args));
+    }
+
+    public addModels(...models: IModel[]) {
+        this._sqlConnection.addModels(...models);
+    }
+
+    public getDependencyInjections(item: any): any[] {
+        let args: any[] = [];
+        let params = Reflect.getMetadata('design:paramtypes', item);
+        if (params !== undefined) {
+            for (let i = 0; i < params.length; ++i) {
+                let instanceIndex = this._injectables.findIndex(x => x instanceof params[i]);
+                if (instanceIndex > -1) {
+                    args.push(this._injectables[instanceIndex]);
+                } else {
+                    args.push(null);
+                }
+            }
+        }
+        return args;
     }
 
     private copyRoute<I extends IRoute>(oldRoute: IRoute): I {

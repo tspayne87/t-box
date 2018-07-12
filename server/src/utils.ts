@@ -1,4 +1,3 @@
-import { DecoratedControllerClass, BasicType, PathType } from './declarations';
 import { Method } from './enums';
 
 export function createRouteDecorator(method: Method): (path?: string) => (target: any, key: string, descriptor: PropertyDescriptor) => void {

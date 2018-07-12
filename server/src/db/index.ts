@@ -1,6 +1,6 @@
 export * from './decorators';
 export * from './specifications';
-export { Model } from './Model';
+export { Model, IModel } from './Model';
 export { Connection } from './Connection';
-export { Service } from './Service';
+export { Service, IService } from './Service';
 export { Query } from './Query';

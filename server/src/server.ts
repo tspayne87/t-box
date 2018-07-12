@@ -1,6 +1,8 @@
 import { InternalServer } from './internal';
 import { Controller } from './Controller';
 import { Injector } from './Injector';
+import { Connection, Model, Service } from './db';
+
 import { ILogger, ConsoleLogger } from './loggers';
 import * as path from 'path';
 import * as glob from 'glob';
@@ -9,8 +11,8 @@ export class Server {
     private _server: InternalServer;
     private _logger: ILogger;
 
-    constructor(logger?: ILogger) {
-        this._server = new InternalServer(logger);
+    constructor(connection: Connection, logger?: ILogger) {
+        this._server = new InternalServer(connection, logger);
         this._logger = logger ? logger : new ConsoleLogger();
     }
 
@@ -20,10 +22,7 @@ export class Server {
         for (let i = 0; i < items.length; ++i) {
             let keys = Object.keys(items[i]);
             for (let j = 0; j < keys.length; ++j) {
-                let controller = new items[i][keys[j]]();
-                if (controller instanceof Controller) {
-                    controllers.push(controller);
-                }
+                this._server.addControllers(items[i][keys[j]]);
             }
         }
         return this._server.addControllers.apply(this._server, controllers);
@@ -35,17 +34,29 @@ export class Server {
         for (let i = 0; i < items.length; ++i) {
             let keys = Object.keys(items[i]);
             for (let j = 0; j < keys.length; ++j) {
-                let injector = new items[i][keys[j]]();
-                if (injector instanceof Injector) {
-                    injectors.push(injector);
-                }
+                this._server.addInjectors(items[i][keys[j]]);
             }
         }
-        return this._server.addInjectors.apply(this._server, injectors);
     }
 
     public async registerModels(context: string | __WebpackModuleApi.RequireContext, dirname: string) {
         let items = await this.findItems(context, dirname, 'model');
+        for (let i = 0; i < items.length; ++i) {
+            let keys = Object.keys(items[i]);
+            for (let j = 0; j < keys.length; ++j) {
+                this._server.addModels(items[i][keys[j]]);
+            }
+        }
+    }
+
+    public async registerServices(context: string | __WebpackModuleApi.RequireContext, dirname: string) {
+        let items = await this.findItems(context, dirname, 'service');
+        for (let i = 0; i < items.length; ++i) {
+            let keys = Object.keys(items[i]);
+            for (let j = 0; j < keys.length; ++j) {
+                this._server.addService(items[i][keys[j]]);
+            }
+        }
     }
 
     private findItems(context: string | __WebpackModuleApi.RequireContext, dirname: string, type: string) {

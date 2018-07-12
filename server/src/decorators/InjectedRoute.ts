@@ -1,13 +1,8 @@
-import { Injector } from '../Injector';
-import { InjectorClass, DecoratedInjectorClass } from '../declarations';
-
-function InjectedRoute<C extends Injector>(path: string): <CC extends InjectorClass<C>>(target: CC) => CC;
-function InjectedRoute<CC extends InjectorClass<CC>>(path: string): CC;
 function InjectedRoute(path: string): any {
-    return (target: DecoratedInjectorClass): InjectorClass<Injector> => {
+    return (target: any): any => {
         return class Injector extends target {
-            constructor() {
-                super();
+            constructor(...args: any[]) {
+                super(...args);
 
                 // Add in the routes to the class
                 if (target.__routes__ !== undefined) {

@@ -1,13 +1,8 @@
-import { Controller } from '../Controller';
-import { ControllerClass, DecoratedControllerClass } from '../declarations';
-
-function Route<C extends Controller>(path: string): <CC extends ControllerClass<C>>(target: CC) => CC;
-function Route<CC extends ControllerClass<CC>>(path: string): CC;
 function Route(path: string): any {
-    return (target: DecoratedControllerClass): ControllerClass<Controller> => {
+    return (target: any): any => {
         return class Router extends target {
-            constructor() {
-                super();
+            constructor(...args: any[]) {
+                super(...args);
 
                 // Add in the routes to the class
                 if (target.__routes__ !== undefined) {
