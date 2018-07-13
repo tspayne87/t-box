@@ -7,7 +7,6 @@ export class UserController extends Controller {
 
     constructor(private _userService: UserService) {
         super();
-        console.log(this._userService);
         this.data = 'Searching...';
     }
 

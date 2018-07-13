@@ -4,6 +4,7 @@ import { Injector } from './Injector';
 import { Connection, Model, Service } from './db';
 
 import { ILogger, ConsoleLogger } from './loggers';
+import * as Sequelize from 'sequelize';
 import * as path from 'path';
 import * as glob from 'glob';
 
@@ -11,9 +12,16 @@ export class Server {
     private _server: InternalServer;
     private _logger: ILogger;
 
-    constructor(connection: Connection, logger?: ILogger) {
+    constructor(connection: Sequelize.Options, logger?: ILogger) {
         this._server = new InternalServer(connection, logger);
         this._logger = logger ? logger : new ConsoleLogger();
+    }
+
+    public async register(context: string | __WebpackModuleApi.RequireContext, dirname: string) {
+        await this.registerModels(context, dirname);
+        await this.registerServices(context, dirname);
+        await this.registerControllers(context, dirname);
+        await this.registerInjectors(context, dirname);
     }
 
     public async registerControllers(context: string | __WebpackModuleApi.RequireContext, dirname: string): Promise<void> {

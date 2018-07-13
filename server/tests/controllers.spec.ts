@@ -4,7 +4,7 @@ import { InternalServer } from '../src/internal';
 import { Connection } from '../src';
 import { UserController } from './controllers/user.controller';
 import { UserService } from './services/user.service';
-import { Http } from './utils';
+import { Http, connectionOptions } from './utils';
 
 describe('/user', function() {
     let id = '4543-38483-29983-2093';
@@ -12,7 +12,7 @@ describe('/user', function() {
     const conn = new Connection();
 
     let http = new Http();
-    let server = new InternalServer(conn);
+    let server = new InternalServer(connectionOptions);
     server.addService(UserService);
     server.addControllers(UserController);
 

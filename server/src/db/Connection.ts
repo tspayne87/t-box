@@ -36,7 +36,9 @@ export class Connection {
                     }
                 }
             }
-            this._models[ModelClass.__table_name__] = this._db.define<any, any>(ModelClass.__table_name__, fields);
+            if (ModelClass.__table_name__ !== undefined) {
+                this._models[ModelClass.__table_name__] = this._db.define<any, any>(ModelClass.__table_name__, fields);
+            }
         }
 
         // Build out relationships and sync the models together.
@@ -49,7 +51,9 @@ export class Connection {
                     let hasMany = Reflect.getMetadata(HASMANY, model, properties[j].property);
                     if (hasMany !== undefined) {
                         // Deals with the many link from table to table.
-                        this._models[ModelClass.__table_name__].hasMany(this._models[hasMany.table], hasMany.options);
+                        if (ModelClass.__table_name__ !== undefined) {
+                            this._models[ModelClass.__table_name__].hasMany(this._models[hasMany.table], hasMany.options);
+                        }
                     }
                 }
             }

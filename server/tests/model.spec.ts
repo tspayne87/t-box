@@ -8,6 +8,7 @@ import { Address } from './models/address.model';
 import { PersonService } from './services/person.service';
 import { AddressService } from './services/address.service';
 import { PersonByFirstNameSpec } from './specs/PersonByFirstNameSpec';
+import { connectionOptions } from './utils';
 
 describe('Connection - Tests', function() {
     const conn = new Connection();
@@ -17,14 +18,7 @@ describe('Connection - Tests', function() {
     const addressService = new AddressService(conn);
 
     before(function (done) {
-        conn.listen({
-            logging: false,
-            dialect: 'mssql',
-            dialectModulePath: 'sequelize-msnodesqlv8',
-            dialectOptions: {
-                connectionString: 'Driver={SQL Server Native Client 11.0};Server=TETHYS;Database=TestApp;Trusted_Connection=yes;'
-            }
-        })
+        conn.listen(connectionOptions)
             .then(() => done())
             .catch(err => done(err));
     });
@@ -51,7 +45,7 @@ describe('Connection - Tests', function() {
     });
 
     it('Find by FirstName', (done) => {
-        const query = new Query(conn, Person)
+        const query = new Query<Person>(conn, Person)
             .where(new PersonByFirstNameSpec('John'))
             .include(x => x.Addresses);
         service.findOne(query)
@@ -74,7 +68,7 @@ describe('Connection - Tests', function() {
     });
 
     it('Destroy Person', (done) => {
-        const query = new Query(conn, Person)
+        const query = new Query<Person>(conn, Person)
             .where(new PersonByFirstNameSpec('John'))
             .include(x => x.Addresses);
         service.findOne(query)

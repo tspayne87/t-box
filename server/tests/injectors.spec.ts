@@ -4,7 +4,7 @@ import { InternalServer } from '../src/internal';
 import { Connection } from '../src';
 import { UserController } from './controllers/user.controller';
 import { UserInjection } from './injectors/user.injector';
-import { Http } from './utils';
+import { Http, connectionOptions } from './utils';
 
 describe('{Injection}:/user', function() {
     let id = '4543-38483-29983-2093';
@@ -12,9 +12,9 @@ describe('{Injection}:/user', function() {
     const conn = new Connection();
 
     let http = new Http();
-    let server = new InternalServer(conn);
+    let server = new InternalServer(connectionOptions);
     server.addControllers(UserController);
-    server.addInjectors(new UserInjection());
+    server.addInjectors(UserInjection);
 
     before(function () {
         server.listen(port);

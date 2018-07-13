@@ -1,6 +1,15 @@
 import * as HTTP from 'http';
 import * as URL from 'url';
 
+export const connectionOptions = {
+    logging: false,
+    dialect: 'mssql',
+    dialectModulePath: 'sequelize-msnodesqlv8',
+    dialectOptions: {
+        connectionString: 'Driver={SQL Server Native Client 11.0};Server=TETHYS;Database=TestApp;Trusted_Connection=yes;'
+    }
+};
+
 export class Http {
     public status?: number;
     public headers: HTTP.IncomingHttpHeaders = <any>{};
@@ -33,7 +42,7 @@ export class Http {
             let req = HTTP.request(options, (res) => {
                 this.status = res.statusCode;
                 this.headers = res.headers;
-                var data = '';
+                let data = '';
                 res.on('error', (err) => reject(err));
                 res.on('data', chunk => data += chunk);
                 res.on('end', function() {
@@ -43,7 +52,7 @@ export class Http {
                         } else {
                             resolve(data);
                         }
-                    } catch(err) {
+                    } catch (err) {
                         reject(err);
                     }
                 });

@@ -3,7 +3,7 @@ import { Column } from './decorators';
 
 export interface IModel {
     new (...args: any[]): Model;
-    __table_name__: string;
+    __table_name__?: string;
 }
 
 export class Model {

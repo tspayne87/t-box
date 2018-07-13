@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import * as http from 'http';
 import * as url from 'url';
 import * as isPromise from 'is-promise';
+import * as Sequelize from 'sequelize';
 import { IController } from '../controller';
 import { IInjector } from '../injector';
 import { Method, Status } from '../enums';
@@ -17,12 +18,13 @@ export class InternalServer {
     private _paramRegex: RegExp;
     private _actionRegex: RegExp;
     private _logger: ILogger;
+    private _sqlConnection: Connection;
 
     private _injectables: any[];
 
     private _port: Number;
 
-    constructor(private _sqlConnection: Connection, logger?: ILogger) {
+    constructor(private _sqlConnectionOptions: Sequelize.Options, logger?: ILogger) {
         this._server = http.createServer(this.handleRequest.bind(this));
         this._paramRegex = /{(.*)}/;
         this._actionRegex = /\[(.*)\]/;
@@ -31,6 +33,7 @@ export class InternalServer {
         this._port = 0;
         this._logger = logger ? logger : new ConsoleLogger();
 
+        this._sqlConnection = new Connection();
         this._injectables = [ this._sqlConnection ];
     }
 
@@ -101,13 +104,14 @@ export class InternalServer {
         return route;
     }
 
-    public listen(...args: any[]) {
+    public async listen(...args: any[]) {
+        await this._sqlConnection.listen(this._sqlConnectionOptions);
         this._port = args[0];
         this._server.listen.apply(this._server, args);
-        this._logger.log(`Listening on port: ${this._port}`);
     }
 
-    public close(callback?: Function) {
+    public async close(callback?: Function) {
+        await this._sqlConnection.close();
         this._server.close(callback);
     }
 
