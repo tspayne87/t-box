@@ -5,7 +5,7 @@ import { addModelProperty } from '../util';
 
 export const HASMANY: string = 'so:db:has:many';
 
-export function HasMany<TModel extends Model>(model: IModel, options?: Sequelize.AssociationOptionsHasMany) {
+export function HasMany<TModel extends Model>(model: IModel<TModel>, options?: Sequelize.AssociationOptionsHasMany) {
     let hasManyOptions: Sequelize.AssociationOptionsHasMany = options || { };
     return (target: any, property: string) => {
         addModelProperty(target, property);

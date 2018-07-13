@@ -1,12 +1,12 @@
-import { Route, Get, Post, Delete, Controller } from '../../src';
+import { Route, Get, Post, Delete, Controller, Connection } from '../../src';
 import { UserService } from '../services/user.service';
 
 @Route('user')
 export class UserController extends Controller {
     public data: string;
 
-    constructor(private _userService: UserService) {
-        super();
+    constructor(conn: Connection, private _userService: UserService) {
+        super(conn);
         this.data = 'Searching...';
     }
 

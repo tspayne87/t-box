@@ -2,17 +2,15 @@ import 'reflect-metadata';
 import * as Sequelize from 'sequelize';
 import { COLUMN, HASMANY } from './decorators';
 import { MODELPROPERTIES } from './util';
-import { IModel } from './Model';
+import { IModel, Model } from './Model';
 
 export class Connection {
     private _db!: Sequelize.Sequelize;
-    private _modelClasses: IModel[] = [];
+    private _modelClasses: IModel<any>[] = [];
     private _models: { [key: string]: Sequelize.Model<any, any> } = {};
 
-    public addModels(...models: IModel[]) {
-        for (let i = 0; i < models.length; ++i) {
-            this._modelClasses.push(<any>models[i]);
-        }
+    public addModel<T extends Model>(model: IModel<T>) {
+        this._modelClasses.push(model);
     }
 
     public model<TModel>(model: string): Sequelize.Model<TModel, any> {

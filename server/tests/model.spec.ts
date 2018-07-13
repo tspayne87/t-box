@@ -12,7 +12,8 @@ import { connectionOptions } from './utils';
 
 describe('Connection - Tests', function() {
     const conn = new Connection();
-    conn.addModels(Address, Person);
+    conn.addModel(Address);
+    conn.addModel(Person);
 
     const service = new PersonService(conn);
     const addressService = new AddressService(conn);
@@ -46,7 +47,7 @@ describe('Connection - Tests', function() {
 
     it('Find by FirstName', (done) => {
         const query = new Query<Person>(conn, Person)
-            .where(new PersonByFirstNameSpec('John'))
+            .where(x => x.FirstName === 'John', { })
             .include(x => x.Addresses);
         service.findOne(query)
             .then(result => {

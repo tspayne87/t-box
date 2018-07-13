@@ -9,10 +9,15 @@ import { Model, IModel } from './Model';
 export class Query<T extends Model> {
     public options: FindOptions<T> = {};
 
-    constructor(private _db: Connection, private _constructor: IModel) {
+    constructor(private _db: Connection, private _constructor: IModel<T>) {
     }
 
-    public where(spec: Specification<T>) {
+    public where(spec: Specification<T>);
+    public where(spec: (item: T) => boolean, vars: { [key: string]: any });
+    public where(spec: any, vars?: any) {
+        if (!(spec instanceof Specification)) {
+            spec = new Specification<T>(spec, vars);
+        }
         this.options.where = spec.where();
         return this;
     }

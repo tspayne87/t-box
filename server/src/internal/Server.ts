@@ -40,7 +40,7 @@ export class InternalServer {
     public addControllers(...controllers: IController[]) {
         for (let i = 0; i < controllers.length; ++i) {
             let args = this.getDependencyInjections(controllers[i]);
-            let controller = new controllers[i](...args);
+            let controller = new controllers[i](this._sqlConnection, ...args);
             for (let j = 0; j < controller._routes.length; ++j) {
                 let route = this.copyRoute<IInternalRoute>(controller._routes[j]);
                 route.controller = controller;
@@ -67,8 +67,8 @@ export class InternalServer {
         this._injectables.push(new service(this._sqlConnection, ...args));
     }
 
-    public addModels(...models: IModel[]) {
-        this._sqlConnection.addModels(...models);
+    public addModel<T extends Model>(model: IModel<T>) {
+        this._sqlConnection.addModel(model);
     }
 
     public getDependencyInjections(item: any): any[] {

@@ -52,7 +52,7 @@ export class Server {
         for (let i = 0; i < items.length; ++i) {
             let keys = Object.keys(items[i]);
             for (let j = 0; j < keys.length; ++j) {
-                this._server.addModels(items[i][keys[j]]);
+                this._server.addModel(items[i][keys[j]]);
             }
         }
     }

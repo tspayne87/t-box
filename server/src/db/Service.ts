@@ -9,7 +9,7 @@ export interface IService<T extends Model> {
 }
 
 export abstract class Service<TModel extends Model> {
-    protected abstract _model: IModel;
+    protected abstract _model: IModel<TModel>;
 
     private get Model() { return this._connection.model<TModel>((<any>this._model).__table_name__); }
 
