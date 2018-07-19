@@ -12,9 +12,9 @@ export class Query<T extends Model> {
     constructor(private _db: Connection, private _constructor: IModel<T>) {
     }
 
-    public where(spec: Specification<T>);
-    public where(spec: (item: T) => boolean, vars: { [key: string]: any });
-    public where(spec: any, vars?: any) {
+    public where(spec: Specification<T>): Query<T>;
+    public where(spec: (item: T) => boolean, vars: { [key: string]: any }): Query<T>;
+    public where(spec: any, vars?: any): Query<T> {
         if (!(spec instanceof Specification)) {
             spec = new Specification<T>(spec, vars);
         }
@@ -26,17 +26,17 @@ export class Query<T extends Model> {
         throw 'TODO: This needs to be figured out.';
     }
 
-    public group(group: string | string[] | Object) {
+    public group(group: string | string[] | Object): Query<T> {
         this.options.group = group;
         return this;
     }
 
-    public distinct(distinct: boolean = false) {
+    public distinct(distinct: boolean = false): Query<T> {
         this.options.distinct = distinct;
         return this;
     }
 
-    public include<TInclude extends Model>(include: (item: T) => TInclude | TInclude[], spec?: Specification<TInclude>) {
+    public include<TInclude extends Model>(include: (item: T) => TInclude | TInclude[], spec?: Specification<TInclude>): Query<T> {
         let tokens = tokenizeArrowFunc(include.toString());
         if (tokens.length !== 1) throw 'Include cannot deal with multiple include statements.';
         this.options.include = this.options.include || [];
@@ -54,22 +54,22 @@ export class Query<T extends Model> {
         return this;
     }
 
-    public order(order: string | col | literal | Array<string | number | DbModel<any, any> | { model: DbModel<any, any>, as?: string }> | Array<string | col | literal | Array<string | number | DbModel<any, any> | { model: DbModel<any, any>, as?: string }>>) {
+    public order(order: string | col | literal | Array<string | number | DbModel<any, any> | { model: DbModel<any, any>, as?: string }> | Array<string | col | literal | Array<string | number | DbModel<any, any> | { model: DbModel<any, any>, as?: string }>>): Query<T> {
         this.options.order = order;
         return this;
     }
 
-    public limit(limit: number) {
+    public limit(limit: number): Query<T> {
         this.options.limit = limit;
         return this;
     }
 
-    public offset(offset: number) {
+    public offset(offset: number): Query<T> {
         this.options.offset = offset;
         return this;
     }
 
-    public paranoid(paranoid: boolean = true) {
+    public paranoid(paranoid: boolean = true): Query<T> {
         this.options.paranoid = paranoid;
         return this;
     }

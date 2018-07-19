@@ -7,6 +7,8 @@ export class Result {
     public body: any;
 
     public processResponse(res: ServerResponse) {
+        this.headers['Content-Type'] = this.headers['Content-Type'] || 'application/actet-stream';
+
         res.writeHead(this.status, this.headers);
         res.write(this.body);
         res.end();

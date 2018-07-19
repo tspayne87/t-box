@@ -1,13 +1,18 @@
 const gulp = require('gulp');
 const ts = require('gulp-typescript');
-const tsProject = ts.createProject('tsconfig.json');
+const tsConfig = require('./tsconfig.json');
 const merge = require('merge2');
+const mocha = require('gulp-mocha');
+const tslint = require('gulp-tslint');
+const runSequence = require('run-sequence');
 
-gulp.task('build', ['compile', 'copy']);
+gulp.task('build', function() {
+    runSequence('lint', ['compile', 'copy']);
+});
 
 gulp.task('compile', function() {
-    let tsResult = tsProject.src()
-        .pipe(tsProject());
+    let tsResult = gulp.src('src/**/*.ts')
+        .pipe(ts(tsConfig.compilerOptions));
 
     return merge([
         tsResult.dts.pipe(gulp.dest('dist')),
@@ -20,6 +25,15 @@ gulp.task('copy', function() {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('watch', ['compile'], function() {
-    gulp.watch('src/**/*.ts', ['compile']);
+gulp.task('lint', function() {
+    gulp.src('src/**/*.ts')
+        .pipe(tslint({ configuration: 'tslint.json' }))
+        .pipe(tslint.report());
+})
+
+gulp.task('watch', function() {
+    runSequence('lint', ['compile', 'copy']);
+    gulp.watch('src/**/*.ts', function() {
+        runSequence('lint', ['compile', 'copy']);
+    });
 });

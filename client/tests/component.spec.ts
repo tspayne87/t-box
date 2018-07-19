@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import mocha from 'mocha';
+import 'mocha';
 import TestComponent from './components/test.component';
 
 describe('Decorator Tests', function() {

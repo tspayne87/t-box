@@ -1,11 +1,8 @@
 import Vue from 'vue';
-import { ComponentRoute } from '../../src';
+import Component from 'vue-class-component';
+import { Route } from '../../src';
 
-@ComponentRoute({
-    route: {
-        path: '/test'
-    }
-})
+@Route('/test')
 export default class TestComponent extends Vue {
 
 }

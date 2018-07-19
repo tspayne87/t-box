@@ -1,28 +1,18 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "es5",
-      "es2015",
-      "es2015.promise"
-    ],
     "outDir": "dist",
     "target": "ES6",
-    "module": "es2015",
+    "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
     "strict": true,
     "noLib": false,
-    "allowSyntheticDefaultImports": true,
-    "skipDefaultLibCheck": true,
+    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "removeComments": false,
     "noImplicitAny": false,
     "declaration": true
   },
-  "include": [
-    "src"
-  ],
   "exclude": [
     "node_modules"
   ]

@@ -12,33 +12,34 @@ export class Server {
     private _server: InternalServer;
     private _logger: ILogger;
 
-    constructor(connection: Sequelize.Options, logger?: ILogger) {
-        this._server = new InternalServer(connection, logger);
+    constructor(connection: Sequelize.Options, private _dir: string, logger?: ILogger) {
+        this._server = new InternalServer(connection, this._dir, logger);
         this._logger = logger ? logger : new ConsoleLogger();
     }
 
-    public async register(context: string | __WebpackModuleApi.RequireContext, dirname: string) {
+    public registerStaticFolders(...folders: string[]) {
+        this._server.registerStaticLocations(...folders);
+    }
+
+    public async register(context: string | __WebpackModuleApi.RequireContext, dirname?: string) {
         await this.registerModels(context, dirname);
         await this.registerServices(context, dirname);
         await this.registerControllers(context, dirname);
         await this.registerInjectors(context, dirname);
     }
 
-    public async registerControllers(context: string | __WebpackModuleApi.RequireContext, dirname: string): Promise<void> {
-        let items = await this.findItems(context, dirname, 'controller');
-        let controllers: Controller[] = [];
+    public async registerControllers(context: string | __WebpackModuleApi.RequireContext, dirname?: string): Promise<void> {
+        let items = await this.findItems(context, dirname || this._dir, 'controller');
         for (let i = 0; i < items.length; ++i) {
             let keys = Object.keys(items[i]);
             for (let j = 0; j < keys.length; ++j) {
                 this._server.addControllers(items[i][keys[j]]);
             }
         }
-        return this._server.addControllers.apply(this._server, controllers);
     }
 
-    public async registerInjectors(context: string | __WebpackModuleApi.RequireContext, dirname: string): Promise<void> {
-        let items = await this.findItems(context, dirname, 'injector');
-        let injectors: Injector[] = [];
+    public async registerInjectors(context: string | __WebpackModuleApi.RequireContext, dirname?: string): Promise<void> {
+        let items = await this.findItems(context, dirname || this._dir, 'injector');
         for (let i = 0; i < items.length; ++i) {
             let keys = Object.keys(items[i]);
             for (let j = 0; j < keys.length; ++j) {
@@ -47,8 +48,8 @@ export class Server {
         }
     }
 
-    public async registerModels(context: string | __WebpackModuleApi.RequireContext, dirname: string) {
-        let items = await this.findItems(context, dirname, 'model');
+    public async registerModels(context: string | __WebpackModuleApi.RequireContext, dirname?: string) {
+        let items = await this.findItems(context, dirname || this._dir, 'model');
         for (let i = 0; i < items.length; ++i) {
             let keys = Object.keys(items[i]);
             for (let j = 0; j < keys.length; ++j) {
@@ -57,8 +58,8 @@ export class Server {
         }
     }
 
-    public async registerServices(context: string | __WebpackModuleApi.RequireContext, dirname: string) {
-        let items = await this.findItems(context, dirname, 'service');
+    public async registerServices(context: string | __WebpackModuleApi.RequireContext, dirname?: string) {
+        let items = await this.findItems(context, dirname || this._dir, 'service');
         for (let i = 0; i < items.length; ++i) {
             let keys = Object.keys(items[i]);
             for (let j = 0; j < keys.length; ++j) {
