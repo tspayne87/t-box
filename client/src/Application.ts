@@ -1,4 +1,4 @@
-import Vue, { Component, VueConstructor } from 'vue';
+import Vue, { VueConstructor } from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
 
 export class Application {
@@ -39,7 +39,7 @@ export class Application {
         });
     }
 
-    public boot(): void {
+    public boot(Vue: VueConstructor<Vue>): void {
         Vue.use(VueRouter);
 
         // Register global components
@@ -50,7 +50,6 @@ export class Application {
 
         // Build the root component for the single page application.
         let router = new VueRouter({ mode: 'history', routes: this._routes });
-        console.log({ Vue });
         new Vue({
             el: '#app',
             router

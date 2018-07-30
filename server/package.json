@@ -1,6 +1,6 @@
 {
   "name": "@square-one/server",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "types": "index.d.ts",
@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "formidable": "^1.2.1",
     "glob": "^7.1.2",
     "is-promise": "^2.1.0",
     "reflect-metadata": "^0.1.12",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.1.4",
+    "@types/formidable": "^1.0.31",
     "@types/mocha": "^5.2.3",
     "@types/node": "^10.5.0",
     "@types/reflect-metadata": "^0.1.0",

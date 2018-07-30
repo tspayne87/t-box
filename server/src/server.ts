@@ -12,6 +12,9 @@ export class Server {
     private _server: InternalServer;
     private _logger: ILogger;
 
+    public get uploadDir() { return this._server.uploadDir; }
+    public set uploadDir(dir) { this._server.uploadDir = dir; }
+
     constructor(connection: Sequelize.Options, private _dir: string, logger?: ILogger) {
         this._server = new InternalServer(connection, this._dir, logger);
         this._logger = logger ? logger : new ConsoleLogger();
@@ -75,8 +78,12 @@ export class Server {
                     if (err) return reject(err);
 
                     let items: any[] = [];
-                    for (let i = 0; i < files.length; ++i) items.push(require(files[i]));
-                    resolve(items);
+                    try {
+                        for (let i = 0; i < files.length; ++i) items.push(require(files[i]));
+                        resolve(items);
+                    } catch (err) {
+                        reject(err);
+                    }
                 });
             } else {
                 let items: any[] = [];

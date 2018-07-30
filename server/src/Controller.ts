@@ -1,6 +1,7 @@
 import { IRoute } from './interfaces';
 import { HtmlResult } from './results';
 import { Connection, Query, Model, IModel } from './db';
+import { Fields, Files } from 'formidable';
 
 export interface IController {
     new (conn: Connection, ...args: any[]): Controller;
@@ -8,7 +9,10 @@ export interface IController {
 }
 
 export class Controller {
+    public _dirname!: string;
     public _routes: IRoute[] = [];
+    public _formFields?: Fields;
+    public _formFiles?: Files;
 
     constructor(private _conn: Connection) {
     }

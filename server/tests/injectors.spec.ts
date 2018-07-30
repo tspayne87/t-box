@@ -12,7 +12,7 @@ describe('{Injection}:/user', function() {
     const conn = new Connection();
 
     let http = new Http();
-    let server = new InternalServer(connectionOptions);
+    let server = new InternalServer(connectionOptions, '');
     server.addControllers(UserController);
     server.addInjectors(UserInjection);
 

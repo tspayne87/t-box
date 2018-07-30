@@ -42,4 +42,9 @@ export class UserController extends Controller {
     public deleteUser(id: string): boolean {
         return id !== undefined;
     }
+
+    @Post('upload')
+    public upload(): boolean {
+        return this._formFiles !== undefined;
+    }
 }

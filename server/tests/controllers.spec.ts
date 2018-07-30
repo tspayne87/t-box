@@ -75,6 +75,17 @@ describe('/user', function() {
             .catch((err) => done(err));
     });
 
+    it('File Upload', (done) => {
+        http.File(`http://localhost:${port}/user/upload`, __dirname + '/test-file.txt')
+            .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'application/json');
+                assert.equal(true, data);
+                done();
+            })
+            .catch((err) => done(err));
+    });
+
     after(function() {
         server.close();
     });

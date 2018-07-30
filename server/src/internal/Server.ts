@@ -5,14 +5,15 @@ import * as path from 'path';
 import * as url from 'url';
 import * as isPromise from 'is-promise';
 import * as Sequelize from 'sequelize';
-import { IController } from '../controller';
-import { IInjector } from '../injector';
+import { IController } from '../Controller';
+import { IInjector } from '../Injector';
 import { Method, Status } from '../enums';
 import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
 import { Result, JsonResult, HtmlResult, JavascriptResult, CssResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
 import { IService, Model, IModel, Connection } from '../db';
-import { resolve } from 'dns';
+import { IncomingForm } from 'formidable';
+import { IFormModel } from './IFormModel';
 
 export class InternalServer {
     private _server: http.Server;
@@ -29,9 +30,10 @@ export class InternalServer {
     private _injectables: any[];
 
     public indexFile: string;
+    public uploadDir: string;
 
     constructor(private _sqlConnectionOptions: Sequelize.Options, private _dir: string, logger?: ILogger) {
-        this._server = http.createServer(this.handleRequest.bind(this));
+        this._server = http.createServer(this.requestListener.bind(this));
         this._paramRegex = /{(.*)}/;
         this._actionRegex = /\[(.*)\]/;
         this._jsRegex = /\.js$/;
@@ -42,6 +44,7 @@ export class InternalServer {
         this._routes = [];
         this._logger = logger ? logger : new ConsoleLogger();
         this.indexFile = 'index.html';
+        this.uploadDir = '';
 
         this._sqlConnection = new Connection();
         this._injectables = [ this._sqlConnection ];
@@ -52,6 +55,7 @@ export class InternalServer {
             let args = this.getDependencyInjections(controllers[i]);
             args.shift();
             let controller = new controllers[i](this._sqlConnection, ...args);
+            controller._dirname = this._dir;
             for (let j = 0; j < controller._routes.length; ++j) {
                 let route = this.copyRoute<IInternalRoute>(controller._routes[j]);
                 route.controller = controller;
@@ -129,49 +133,33 @@ export class InternalServer {
         this._server.close(callback);
     }
 
-    private handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
-        let parsedUrl = url.parse((req.url || '').substr(1), true);
-        let routes = this.getRoutes(parsedUrl, req.method || '', this._routes);
-        let injectors = this.getRoutes(parsedUrl, req.method || '', this._injectedRoutes);
-
-        let data: any[] = [];
-        req.on('data', (chunk) => {
-            data.push(chunk);
-        });
-
-        req.on('end', async () => {
-            let body: any = Buffer.concat(data).toString();
-            if (req.headers['content-type'] === 'application/json' && body) body = JSON.parse(body);
-
-            let response = new JsonResult();
-            try {
-                if (routes.length > 0) {
-                    let result = await this.processRoute(routes[0], parsedUrl, body);
-                    for (let i = 0; i < injectors.length; ++i) {
-                        result = await this.processInjector(injectors[i], parsedUrl, body, result);
-                    }
-
-                    if (result instanceof Result) {
-                        response = result;
-                    } else {
-                        response.body = result;
-                    }
-                } else {
-                    if (this.isStaticResource(parsedUrl)) {
-                        response = await this.getStaticResult(parsedUrl);
-                    } else {
-                        let index = await this.readIndex();
-                        response = new HtmlResult(index);
-                    }
-                }
-            } catch (err) {
-                this._logger.error(err);
-                response.status = Status.InternalServerError;
-                response.body = { message: 'Internal Server Error' };
-            } finally {
-                response.processResponse(res);
-            }
-        });
+    private requestListener(req: http.IncomingMessage, res: http.ServerResponse) {
+        if (req.method !== undefined && req.method.toLowerCase() === 'post') {
+            this.processForm(req)
+                .then(model => {
+                    this.handleRequest(req, res, model)
+                        .catch(err => {
+                            this._logger.error(err);
+                            this.sendError(req, res);
+                        });
+                }).catch(err => {
+                    this._logger.error(err);
+                    this.sendError(req, res);
+                });
+        } else {
+            let buffer: any[] = [];
+            req.on('data', (chunk) => {
+                buffer.push(chunk);
+            });
+            req.on('end', async () => {
+                let body: any = Buffer.concat(buffer).toString();
+                this.handleRequest(req, res, null, body)
+                    .catch(err => {
+                        this._logger.error(err);
+                        this.sendError(req, res);
+                    });
+            });
+        }
     }
 
     private async getStaticResult(parsedUrl: url.UrlWithParsedQuery): Promise<Result> {
@@ -201,30 +189,86 @@ export class InternalServer {
         });
     }
 
-    private processRoute(route: IInternalRoute, parsedUrl: url.UrlWithParsedQuery, body: any): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            let response = route.controller[route.key].apply(route.controller, this.processArguments(route, body, parsedUrl));
-            if (isPromise(response)) {
-                response
-                    .then(result => resolve(result))
-                    .catch(err => reject(err));
-            } else {
-                resolve(response);
+    private isStaticResource(parsedUrl: url.UrlWithParsedQuery) {
+        let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
+        for (let i = 0; i < this._staticFolders.length; ++i) {
+            let isStaticResource = true;
+            for (let j = 0; j < this._staticFolders[i].length && isStaticResource; ++j) {
+                isStaticResource = isStaticResource && this._staticFolders[i][j] === splitPath[j];
             }
-        });
+            if (isStaticResource) return true;
+        }
+        return false;
     }
 
-    private processInjector(injectedRoute: IInternalInjectedRoute, parsedUrl: url.UrlWithParsedQuery, body: any, result: any): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            let response = injectedRoute.injector[injectedRoute.key].call(injectedRoute.injector, result);
-            if (isPromise(response)) {
-                response
-                    .then(result => resolve(result))
-                    .catch(err => reject(err));
-            } else {
-                resolve(response);
+    private isFavicon(parsedUrl: url.UrlWithParsedQuery) {
+        return parsedUrl.pathname !== null && parsedUrl.pathname !== undefined && this._faviconRegex.test(parsedUrl.pathname);
+    }
+
+    private getRoutes<R extends IRoute>(parsedUrl: url.UrlWithParsedQuery, method: string, allRoutes: R[]): R[] {
+        let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
+        let possibleRoutes = allRoutes.filter(x => x.splitPath.length === splitPath.length);
+        switch (method) {
+            case 'GET':
+                possibleRoutes = possibleRoutes.filter(x => x.method === Method.Get);
+                break;
+            case 'POST':
+                possibleRoutes = possibleRoutes.filter(x => x.method === Method.Post);
+                break;
+            case 'DELETE':
+                possibleRoutes = possibleRoutes.filter(x => x.method === Method.Delete);
+                break;
+        }
+
+        let routes: R[] = [];
+        for (let i = 0; i < possibleRoutes.length; ++i) {
+            let includeRoute = true;
+            for (let j = 0; j < possibleRoutes[i].splitPath.length && includeRoute; ++j) {
+                if (possibleRoutes[i].splitPath[j] !== splitPath[j] && possibleRoutes[i].splitPath[j].match(this._paramRegex) === null)
+                    includeRoute = false;
             }
-        });
+            if (includeRoute) routes.push(possibleRoutes[i]);
+        }
+        return routes;
+    }
+
+    //#region Processors
+    private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse, form: IFormModel | null, body?: any) {
+        let response = new JsonResult();
+        
+        try {
+            if (body && req.headers['content-type'] === 'application/json') body = JSON.parse(body);
+            if (form !== null) body = form.fields;
+
+            let parsedUrl = url.parse((req.url || '').substr(1), true);
+            let routes = this.getRoutes(parsedUrl, req.method || '', this._routes);
+            let injectors = this.getRoutes(parsedUrl, req.method || '', this._injectedRoutes);
+            if (routes.length > 0) {
+                let result = await this.processRoute(routes[0], parsedUrl, form, body);
+                for (let i = 0; i < injectors.length; ++i) {
+                    result = await this.processInjector(injectors[i], parsedUrl, body, result);
+                }
+
+                if (result instanceof Result) {
+                    response = result;
+                } else {
+                    response.body = result;
+                }
+            } else {
+                if (this.isStaticResource(parsedUrl)) {
+                    response = await this.getStaticResult(parsedUrl);
+                } else {
+                    let index = await this.readIndex();
+                    response = new HtmlResult(index);
+                }
+            }
+        } catch (err) {
+            this._logger.error(err);
+            response.status = Status.InternalServerError;
+            response.body = { message: 'Internal Server Error' };
+        } finally {
+            response.processResponse(res);
+        }
     }
 
     /**
@@ -271,6 +315,53 @@ export class InternalServer {
         return args;
     }
 
+    private processRoute(route: IInternalRoute, parsedUrl: url.UrlWithParsedQuery, form: IFormModel | null, body: any): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            if (form !== null) {
+                route.controller._formFields = form.fields;
+                route.controller._formFiles = form.files;
+            }
+            let response = route.controller[route.key].apply(route.controller, this.processArguments(route, body, parsedUrl));
+            
+            // Reset the form data for the next request
+            route.controller._formFields = undefined;
+            route.controller._formFiles = undefined;
+            if (isPromise(response)) {
+                response
+                    .then(x => resolve(x))
+                    .catch(err => reject(err));
+            } else {
+                resolve(response);
+            }
+        });
+    }
+
+    private processInjector(injectedRoute: IInternalInjectedRoute, parsedUrl: url.UrlWithParsedQuery, body: any, result: any): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            let response = injectedRoute.injector[injectedRoute.key].call(injectedRoute.injector, result);
+            if (isPromise(response)) {
+                response
+                    .then(result => resolve(result))
+                    .catch(err => reject(err));
+            } else {
+                resolve(response);
+            }
+        });
+    }
+
+    private processForm(req: http.IncomingMessage) {
+        return new Promise<IFormModel>((resolve, reject) => {
+            let form = new IncomingForm();
+            if (this.uploadDir.length > 0) {
+                form.uploadDir = this.uploadDir;
+            }
+            form.parse(req, (err, fields, files) => {
+                if (err) return reject(err);
+                resolve({ fields, files });
+            });
+        });
+    }
+
     private processArgument(type: any, value: string) {
         switch (type) {
             case Number:
@@ -282,47 +373,14 @@ export class InternalServer {
         }
         return type(value);
     }
+    //#endregion
 
-    private isStaticResource(parsedUrl: url.UrlWithParsedQuery) {
-        let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
-        for (let i = 0; i < this._staticFolders.length; ++i) {
-            let isStaticResource = true;
-            for (let j = 0; j < this._staticFolders[i].length && isStaticResource; ++j) {
-                isStaticResource = isStaticResource && this._staticFolders[i][j] === splitPath[j];
-            }
-            if (isStaticResource) return true;
-        }
-        return false;
+    //#region Responses
+    private sendError(req: http.IncomingMessage, res: http.ServerResponse) {
+        let response = new JsonResult();
+        response.status = Status.InternalServerError;
+        response.body = { message: 'Internal Server Error' };
+        response.processResponse(res);
     }
-
-    private isFavicon(parsedUrl: url.UrlWithParsedQuery) {
-        return parsedUrl.pathname !== null && parsedUrl.pathname !== undefined && this._faviconRegex.test(parsedUrl.pathname);
-    }
-
-    private getRoutes<R extends IRoute>(parsedUrl: url.UrlWithParsedQuery, method: string, allRoutes: R[]): R[] {
-        let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
-        let possibleRoutes = allRoutes.filter(x => x.splitPath.length === splitPath.length);
-        switch (method) {
-            case 'GET':
-                possibleRoutes = possibleRoutes.filter(x => x.method === Method.Get);
-                break;
-            case 'POST':
-                possibleRoutes = possibleRoutes.filter(x => x.method === Method.Post);
-                break;
-            case 'DELETE':
-                possibleRoutes = possibleRoutes.filter(x => x.method === Method.Delete);
-                break;
-        }
-
-        let routes: R[] = [];
-        for (let i = 0; i < possibleRoutes.length; ++i) {
-            let includeRoute = true;
-            for (let j = 0; j < possibleRoutes[i].splitPath.length && includeRoute; ++j) {
-                if (possibleRoutes[i].splitPath[j] !== splitPath[j] && possibleRoutes[i].splitPath[j].match(this._paramRegex) === null)
-                    includeRoute = false;
-            }
-            if (includeRoute) routes.push(possibleRoutes[i]);
-        }
-        return routes;
-    }
+    //#endregion
 }
