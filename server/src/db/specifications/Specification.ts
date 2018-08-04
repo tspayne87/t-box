@@ -2,17 +2,25 @@ import { tokenizeArrowFunc } from '../util';
 import { Token } from '../lexor';
 import { Model } from '../Model';
 
+export interface ISpecificationTokenGroup {
+    left?: Token;
+    op: Token;
+    right?: Token;
+}
+
+export type SpecificationToken = ISpecificationTokenGroup | ISpecificationTokenGroup[];
+
 export class Specification<T extends Model> {
-    public get tokens(): any[] {
+    public get tokens(): SpecificationToken[] {
         let tokens = tokenizeArrowFunc(this._spec.toString());
         return this.parseTokens(tokens);
     }
 
-    constructor(private _spec: (item: T) => boolean, public vars?: { [key: string]: any }) {
-    }
+    constructor(private _spec: (item: T) => boolean, public vars?: { [key: string]: any })
+        { }
 
-    private parseTokens(tokens: Token[]) {
-        let data: any[] = [];
+    private parseTokens(tokens: Token[]): SpecificationToken[] {
+        let data: SpecificationToken[] = [];
 
         let inner = 0;
         let innerTokens: any[] = [];
@@ -25,7 +33,7 @@ export class Specification<T extends Model> {
                 } else if (token.type === 'cpar') {
                     inner--;
                     if (inner === 0) {
-                        data.push(this.parseTokens(innerTokens));
+                        data.push(<ISpecificationTokenGroup[]>this.parseTokens(innerTokens));
                     } else {
                         innerTokens.push(token);
                     }

@@ -11,6 +11,10 @@ export abstract class Repository {
         this._modelClasses.push(model);
     }
 
+    public model<T extends Model>(model: IModel<T>, ...args: any[]) {
+        return new model(this, ...args);
+    }
+
     public abstract initialize(): Promise<boolean>;
     public abstract listen(): Promise<boolean>;
     public abstract close(): Promise<boolean>;

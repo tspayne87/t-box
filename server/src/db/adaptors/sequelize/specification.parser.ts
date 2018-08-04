@@ -1,5 +1,6 @@
 import { WhereOptions, Op, FindOptions, IncludeOptions } from 'sequelize';
-import { Specification } from '../../specifications';
+import { Specification, SpecificationToken, ISpecificationTokenGroup } from '../../specifications/Specification';
+import { Token } from '../../lexor';
 import { Query } from '../../Query';
 import { Model } from '../../Model';
 
@@ -44,45 +45,48 @@ export function parseQuery<TModel extends Model>(query: Query<TModel>): FindOpti
     return options;
 }
 
-function generateWhere<TModel extends Model>(spec: Specification<TModel>, parsedTokens): any {
+function generateWhere<TModel extends Model>(spec: Specification<TModel>, parsedTokens: SpecificationToken[]): any {
     if (parsedTokens.length === 1) {
-        return generateClause(spec, parsedTokens[0]);
+        return generateClause(spec, <ISpecificationTokenGroup>parsedTokens[0]);
     } else {
-        let op = getOperator(parsedTokens[1].op);
+        let op = getOperator((<ISpecificationTokenGroup>parsedTokens[1]).op);
         let conditions: any[] = [];
         for (let i = 0; i < parsedTokens.length; i += 2) {
-            if (parsedTokens[i].length === undefined) {
-                conditions.push(generateClause(spec, parsedTokens[i]));
+            if (!Array.isArray(parsedTokens[i])) {
+                conditions.push(generateClause(spec, <ISpecificationTokenGroup>parsedTokens[i]));
             } else {
-                conditions.push(generateWhere(spec, parsedTokens[i]));
+                conditions.push(generateWhere(spec, <SpecificationToken[]>parsedTokens[i]));
             }
         }
         return { [op]: conditions };
     }
 }
 
-function generateClause<TModel extends Model>(spec: Specification<TModel>, clause) {
+function generateClause<TModel extends Model>(spec: Specification<TModel>, clause: ISpecificationTokenGroup) {
     if (clause.left === undefined) {
-        return { [getValue(spec, clause.right)]: { [Op.eq]: false } };
+        return { [ getValue(spec, clause.right) ]: { [Op.eq]: false } };
     } else {
-        return { [getValue(spec, clause.left)]: { [getOperator(clause.op)]: getValue(spec, clause.right) } };
+        return { [ getValue(spec, clause.left) ]: { [ getOperator(clause.op) ]: getValue(spec, clause.right) } };
     }
 }
 
-function getValue<TModel extends Model>(spec: Specification<TModel>, item: any): any {
-    if (item.type === 'ref') {
-        return item.value;
+function getValue<TModel extends Model>(spec: Specification<TModel>, item?: Token): any {
+    if (item !== undefined) {
+        if (item.type === 'ref') {
+            return item.value;
+        }
+        else if (item.type === 'var') {
+            if (!spec.vars) throw 'Variables need to be passed in if you want to use the variable feature';
+            if (spec.vars && !spec.vars.hasOwnProperty(item.value)) throw 'Variable could not be found for use in the spec';
+            return spec.vars[item.value];
+        } else if (item.type === 'val') {
+            return eval(item.value);
+        }
     }
-    else if (item.type === 'var') {
-        if (!spec.vars) throw 'Variables need to be passed in if you want to use the variable feature';
-        if (spec.vars && !spec.vars.hasOwnProperty(item.value)) throw 'Variable could not be found for use in the spec';
-        return spec.vars[item.value];
-    } else if (item.type === 'val') {
-        return eval(item.value);
-    }
+    return undefined;
 }
 
-function getOperator(op): symbol {
+function getOperator(op: Token): symbol {
     switch (op.type) {
         case 'and': return Op.and;
         case 'or': return Op.or;

@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import * as Sequelize from 'sequelize';
 import { Repository } from '../../Repository';
 import { Model, IModel } from '../../Model';
-import { MODELPROPERTIES, FIELDOPTIONS, FIELDTYPE, ENTITY } from '../../declarations';
+import { MODELPROPERTIES } from '../../declarations';
 import { Query } from '../../Query';
 import { Specification, ModelByIdSpecification } from '../../specifications';
 import { parseSpecification, parseQuery } from './specification.parser';
@@ -23,7 +23,7 @@ export class SequelizeRepository extends Repository {
         for (let i = 0; i < this._modelClasses.length; ++i) {
             let Model = this._modelClasses[i];
             let props = Reflect.getMetadata(MODELPROPERTIES, Model);
-            let model = new Model();
+            let model = new Model(this);
 
             let fields: { [key: string]: Sequelize.DefineAttributeColumnOptions } = {};
             for (let i = 0; i < props.length; ++i) {
