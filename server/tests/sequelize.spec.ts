@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { assert } from 'chai';
 import 'mocha';
 
-import { Connection, Query } from '../src';
+import { SequelizeRepository, Query } from '../src';
 import { Person } from './models/person.model';
 import { Address } from './models/address.model';
 import { PersonService } from './services/person.service';
@@ -10,16 +10,16 @@ import { AddressService } from './services/address.service';
 import { PersonByFirstNameSpec } from './specs/PersonByFirstNameSpec';
 import { connectionOptions } from './utils';
 
-describe('Connection - Tests', function() {
-    const conn = new Connection();
-    conn.addModel(Address);
-    conn.addModel(Person);
+describe('Sequelize - Tests', function() {
+    const repository = new SequelizeRepository(connectionOptions);
+    repository.addModel(Address);
+    repository.addModel(Person);
 
-    const service = new PersonService(conn);
-    const addressService = new AddressService(conn);
+    const service = new PersonService(repository);
+    const addressService = new AddressService(repository);
 
     before(function (done) {
-        conn.listen(connectionOptions)
+        repository.listen()
             .then(() => done())
             .catch(err => done(err));
     });
@@ -46,7 +46,7 @@ describe('Connection - Tests', function() {
     });
 
     it('Find by FirstName', (done) => {
-        const query = new Query<Person>(conn, Person)
+        const query = new Query<Person>()
             .where(x => x.FirstName === 'John', { })
             .include(x => x.Addresses);
         service.findOne(query)
@@ -69,7 +69,7 @@ describe('Connection - Tests', function() {
     });
 
     it('Destroy Person', (done) => {
-        const query = new Query<Person>(conn, Person)
+        const query = new Query<Person>()
             .where(new PersonByFirstNameSpec('John'))
             .include(x => x.Addresses);
         service.findOne(query)
@@ -90,7 +90,7 @@ describe('Connection - Tests', function() {
     });
 
     after(function(done) {
-        conn.close()
+        repository.close()
             .then(() => done())
             .catch(err => done(err));
     });

@@ -1,72 +1,32 @@
-import { FindOptions } from 'sequelize';
-import { ModelByIdSpecification, Specification } from './specifications';
+import 'reflect-metadata';
+import { Specification } from './specifications';
 import { Query } from './Query';
 import { Model, IModel } from './Model';
-import { Connection } from './Connection';
+import { Repository } from './Repository';
 
 export interface IService<T extends Model> {
-    new (connection: Connection, ...args: any[]): Service<T>;
+    new (repository: Repository, ...args: any[]): Service<T>;
 }
 
 export abstract class Service<TModel extends Model> {
     protected abstract _model: IModel<TModel>;
 
-    private get Model() { return this._connection.model<TModel>((<any>this._model).__table_name__); }
-
-    public constructor(private _connection: Connection) {
+    public constructor(private _repository: Repository) {
     }
 
     public async findAll(query?: Query<TModel> | Specification<TModel>) {
-        if (query === undefined) {
-            return await this.Model.findAll();
-        } else if (query instanceof Query) {
-            return await this.Model.findAll(query.options);
-        } else if (query instanceof Specification) {
-            return await this.Model.findAll({ where: query.where() });
-        }
-        return [];
+        return await this._repository.findAll(this._model, query);
     }
 
     public async findOne(query?: Query<TModel> | Specification<TModel>) {
-        if (query === undefined) {
-            return await this.Model.findOne();
-        } else if (query instanceof Query) {
-            return await this.Model.findOne(query.options);
-        } else if (query instanceof Specification) {
-            return await this.Model.findOne({ where: query.where() });
-        }
-        return null;
+        return await this._repository.findOne(this._model, query);
     }
 
     public async save(...models: TModel[]) {
-        let savedModels: TModel[] = [];
-        for (let i = 0; i < models.length; ++i) {
-            let model = await this.findOne(new ModelByIdSpecification<TModel>(models[i].id));
-            if (model === null) {
-                savedModels.push(await this.Model.create(models[i]));
-            } else {
-                model = this.mapColumns(model, models[i]);
-                savedModels.push(await (<any>model).save());
-            }
-        }
-        return savedModels;
+        return await this._repository.save(this._model, ...models);
     }
 
     public async destroy(...models: TModel[]) {
-        for (let i = 0; i < models.length; ++i) {
-            let model = await this.findOne(new ModelByIdSpecification<TModel>(models[i].id));
-            if (model !== null) {
-                await (<any>model).destroy();
-            }
-        }
-        return true;
-    }
-
-    private mapColumns(to: TModel, from: TModel) {
-        let keys = Object.keys((<any>this._model).__columns__);
-        for (let i = 0; i < keys.length; ++i) {
-            to[keys[i]] = from[keys[i]];
-        }
-        return to;
+        return await this._repository.destroy(this._model, ...models);
     }
 }

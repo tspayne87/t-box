@@ -1,11 +1,11 @@
-import { Table, Column, Model, HasMany } from '../../src';
+import { Entity, Field, Model } from '../../src';
 
-@Table('user')
+@Entity('user')
 export class User extends Model {
 
-    @Column()
+    @Field()
     public Username!: string;
 
-    @Column()
+    @Field()
     public Password!: string;
 }

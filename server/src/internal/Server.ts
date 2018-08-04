@@ -4,14 +4,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as url from 'url';
 import * as isPromise from 'is-promise';
-import * as Sequelize from 'sequelize';
 import { IController } from '../Controller';
 import { IInjector } from '../Injector';
 import { Method, Status } from '../enums';
 import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
 import { Result, JsonResult, HtmlResult, JavascriptResult, CssResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
-import { IService, Model, IModel, Connection } from '../db';
+import { IService, Model, IModel, Repository, NullRepository } from '../db';
 import { IncomingForm } from 'formidable';
 import { IFormModel } from './IFormModel';
 
@@ -26,13 +25,16 @@ export class InternalServer {
     private _cssRegex: RegExp;
     private _faviconRegex: RegExp;
     private _logger: ILogger;
-    private _sqlConnection: Connection;
     private _injectables: any[];
+    private _dir: string;
+    private _repository: Repository;
 
     public indexFile: string;
     public uploadDir: string;
 
-    constructor(private _sqlConnectionOptions: Sequelize.Options, private _dir: string, logger?: ILogger) {
+    constructor(dir?: string, repository?: Repository, logger?: ILogger) {
+        this._dir = dir || '';
+        this._repository = repository || new NullRepository();
         this._server = http.createServer(this.requestListener.bind(this));
         this._paramRegex = /{(.*)}/;
         this._actionRegex = /\[(.*)\]/;
@@ -46,15 +48,14 @@ export class InternalServer {
         this.indexFile = 'index.html';
         this.uploadDir = '';
 
-        this._sqlConnection = new Connection();
-        this._injectables = [ this._sqlConnection ];
+        this._injectables = [ this._repository ];
     }
 
     public addControllers(...controllers: IController[]) {
         for (let i = 0; i < controllers.length; ++i) {
             let args = this.getDependencyInjections(controllers[i]);
             args.shift();
-            let controller = new controllers[i](this._sqlConnection, ...args);
+            let controller = new controllers[i](this._repository, ...args);
             controller._dirname = this._dir;
             for (let j = 0; j < controller._routes.length; ++j) {
                 let route = this.copyRoute<IInternalRoute>(controller._routes[j]);
@@ -79,11 +80,11 @@ export class InternalServer {
     public addService<T extends Model>(service: IService<T>) {
         let args = this.getDependencyInjections(service);
         args.shift();
-        this._injectables.push(new service(this._sqlConnection, ...args));
+        this._injectables.push(new service(this._repository, ...args));
     }
 
     public addModel<T extends Model>(model: IModel<T>) {
-        this._sqlConnection.addModel(model);
+        this._repository.addModel(model);
     }
 
     public registerStaticLocations(...folders: string[]) {
@@ -124,12 +125,12 @@ export class InternalServer {
     }
 
     public async listen(...args: any[]) {
-        await this._sqlConnection.listen(this._sqlConnectionOptions);
+        await this._repository.listen();
         this._server.listen.apply(this._server, args);
     }
 
     public async close(callback?: Function) {
-        await this._sqlConnection.close();
+        await this._repository.close();
         this._server.close(callback);
     }
 

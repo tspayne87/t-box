@@ -1,12 +1,12 @@
-import { Route, Get, Post, Delete, Controller, Connection } from '../../src';
+import { Route, Get, Post, Delete, Controller, Repository } from '../../src';
 import { UserService } from '../services/user.service';
 
 @Route('user')
 export class UserController extends Controller {
     public data: string;
 
-    constructor(conn: Connection, private _userService: UserService) {
-        super(conn);
+    constructor(repository: Repository, private _userService: UserService) {
+        super(repository);
         this.data = 'Searching...';
     }
 
@@ -19,7 +19,7 @@ export class UserController extends Controller {
         return new Promise<string>(resolve => {
             setTimeout(() => {
                 resolve(`<html><head></head><body><div id="app"></div></body><html>`);
-            }, 1000);
+            }, 100);
         });
     }
 

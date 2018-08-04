@@ -1,13 +1,13 @@
 import 'reflect-metadata';
 import { Lexor } from './lexor';
-
-export const MODELPROPERTIES: string = 'so:db:model:properties';
+import { MODELPROPERTIES } from './declarations';
 
 export function addModelProperty(target: any, property: string): void {
-    let properties: any[] = Reflect.getMetadata(MODELPROPERTIES, target) || [];
     let Ctor = typeof target === 'function' ? target : target.constructor;
+
+    let properties: any[] = Reflect.getMetadata(MODELPROPERTIES, Ctor) || [];
     properties.push({ constructor: Ctor, property });
-    Reflect.defineMetadata(MODELPROPERTIES, properties, target);
+    Reflect.defineMetadata(MODELPROPERTIES, properties, Ctor);
 }
 
 export function tokenizeArrowFunc(arrowFunc: string) {

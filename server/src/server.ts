@@ -1,22 +1,21 @@
 import { InternalServer } from './internal';
-import { Controller } from './Controller';
-import { Injector } from './Injector';
-import { Connection, Model, Service } from './db';
+import { Repository, NullRepository } from './db';
 
 import { ILogger, ConsoleLogger } from './loggers';
-import * as Sequelize from 'sequelize';
 import * as path from 'path';
 import * as glob from 'glob';
 
 export class Server {
+    private _dir: string;
     private _server: InternalServer;
     private _logger: ILogger;
 
     public get uploadDir() { return this._server.uploadDir; }
     public set uploadDir(dir) { this._server.uploadDir = dir; }
 
-    constructor(connection: Sequelize.Options, private _dir: string, logger?: ILogger) {
-        this._server = new InternalServer(connection, this._dir, logger);
+    constructor(dir?: string, repository?: Repository, logger?: ILogger) {
+        this._dir = dir || '';
+        this._server = new InternalServer(dir, repository, logger);
         this._logger = logger ? logger : new ConsoleLogger();
     }
 

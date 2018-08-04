@@ -1,18 +1,23 @@
 import { Address } from './address.model';
-import { Table, Column, Model, HasMany } from '../../src';
+import { Entity, Field, Model } from '../../src';
 
-@Table('person')
+export enum PersonGender { Male = 'Male', Female = 'Female' }
+
+@Entity('person')
 export class Person extends Model {
 
-    @Column()
+    @Field()
     public FirstName!: string;
 
-    @Column()
+    @Field()
     public LastName!: string;
 
-    @Column()
+    @Field()
     public Birthday!: Date;
 
-    @HasMany(Address)
+    @Field()
+    public Gender!: PersonGender;
+
+    @Field(Address)
     public Addresses!: Address[];
 }

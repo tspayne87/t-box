@@ -1,22 +1,21 @@
-import { INTEGER } from 'sequelize';
-import { Table, Column, Model } from '../../src';
+import { Entity, Field, Model } from '../../src';
 
-@Table('address')
+@Entity('address')
 export class Address extends Model {
 
-    @Column()
+    @Field()
     public Line1!: string;
 
-    @Column()
+    @Field()
     public Line2!: string;
 
-    @Column()
+    @Field()
     public City!: string;
 
-    @Column()
+    @Field()
     public State!: string;
 
-    @Column()
+    @Field()
     public Zip!: string;
     
     public personId!: number;
