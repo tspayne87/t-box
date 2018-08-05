@@ -18,6 +18,7 @@
     "mysql2": "^1.5.3",
     "reflect-metadata": "^0.1.12",
     "sequelize": "^4.38.0",
+    "sqlite3": "^4.0.2",
     "tedious": "^2.6.3"
   },
   "devDependencies": {

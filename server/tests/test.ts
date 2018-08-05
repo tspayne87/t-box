@@ -4,7 +4,9 @@ import { Person } from './models/person.model';
 import { Address } from './models/address.model';
 import { connectionOptions } from './utils';
 
-const conn = new SequelizeRepository(connectionOptions);
+const conn = new SequelizeRepository({
+    dialect: 'sqlite'
+});
 conn.addModel(Address);
 conn.addModel(Person);
 
