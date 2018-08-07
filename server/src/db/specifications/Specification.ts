@@ -16,8 +16,7 @@ export class Specification<T extends Model> {
         return this.parseTokens(tokens);
     }
 
-    constructor(private _spec: (item: T) => boolean, public vars?: { [key: string]: any })
-        { }
+    constructor(private _spec: (item: T) => boolean, public vars?: { [key: string]: any }) { }
 
     private parseTokens(tokens: Token[]): SpecificationToken[] {
         let data: SpecificationToken[] = [];

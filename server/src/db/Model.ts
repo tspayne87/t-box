@@ -2,9 +2,10 @@ import 'reflect-metadata';
 import { FIELDTYPE, FIELDOPTIONS, IFieldOptions, ENTITY } from './declarations';
 import { Repository } from './Repository';
 import { Field } from './decorators';
+import { Query } from './Query';
 
 export class Model {
-    constructor(private _repo: Repository) {
+    constructor(private _repository: Repository) {
     }
 
     @Field({ isPrimary: true, autoIncrement: true })
@@ -26,6 +27,14 @@ export class Model {
 
     public static get entityName(): string {
         return Reflect.getMetadata(ENTITY, this);
+    }
+
+    public async save() {
+        return (await this._repository.save((<any>this).constructor, this))[0];
+    }
+
+    public async destroy() {
+        return await this._repository.destroy((<any>this).constructor, this);
     }
 }
 

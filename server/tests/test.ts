@@ -4,14 +4,18 @@ import { Person } from './models/person.model';
 import { Address } from './models/address.model';
 import { connectionOptions } from './utils';
 
-const conn = new SequelizeRepository({
-    dialect: 'sqlite'
-});
+const conn = new SequelizeRepository(connectionOptions);
 conn.addModel(Address);
 conn.addModel(Person);
 
 async function test() {
-    await conn.initialize();
+    await conn.listen();
+
+    let person = conn.model(Person);
+    person.FirstName = 'Terry';
+    person.LastName = 'Payne';
+    await person.save();
+    await conn.close();
 }
 
 test()

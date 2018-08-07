@@ -14,19 +14,19 @@ export abstract class Service<TModel extends Model> {
     public constructor(private _repository: Repository) {
     }
 
-    public async findAll(query?: Query<TModel> | Specification<TModel>) {
-        return await this._repository.findAll(this._model, query);
+    public findAll(query?: Query<TModel> | Specification<TModel>): Promise<TModel[]> {
+        return this._repository.findAll(this._model, query);
     }
 
-    public async findOne(query?: Query<TModel> | Specification<TModel>) {
-        return await this._repository.findOne(this._model, query);
+    public findOne(query?: Query<TModel> | Specification<TModel>): Promise<TModel | null> {
+        return this._repository.findOne(this._model, query);
     }
 
-    public async save(...models: TModel[]) {
-        return await this._repository.save(this._model, ...models);
+    public save(...models: TModel[]): Promise<TModel[]> {
+        return this._repository.save(this._model, ...models);
     }
 
-    public async destroy(...models: TModel[]) {
-        return await this._repository.destroy(this._model, ...models);
+    public destroy(...models: TModel[]): Promise<boolean> {
+        return this._repository.destroy(this._model, ...models);
     }
 }

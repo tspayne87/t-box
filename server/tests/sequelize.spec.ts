@@ -25,20 +25,20 @@ describe('Sequelize - Tests', function() {
     });
 
     it('Create Person', (done) => {
-        let person = new Person();
+        let person = repository.model(Person);
         person.FirstName = 'John';
         person.LastName = 'Doe';
         person.Birthday = new Date(2000, 1, 1);
 
-        service.save(person)
+        person.save()
             .then((person) => {
-                let address = new Address();
+                let address = repository.model(Address);
                 address.Line1 = '2293 Some Street';
                 address.City = 'Some City';
                 address.State = 'TN';
                 address.Zip = '95684';
-                address.personId = person[0].id;
-                addressService.save(address)
+                address.personId = person.id;
+                address.save()
                     .then(() => done())
                     .catch(err => done(err));
             })
@@ -77,7 +77,7 @@ describe('Sequelize - Tests', function() {
                 if (result !== null) {
                     addressService.destroy.apply(addressService, result.Addresses)
                         .then(() => {
-                            service.destroy(result)
+                            result.destroy()
                                 .then(() => done())
                                 .catch(err => done(err));
                         })

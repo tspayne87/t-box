@@ -6,7 +6,7 @@
   "types": "index.d.ts",
   "scripts": {
     "test": "mocha -r ts-node/register tests/**/*.spec.ts",
-    "check": "node node_modules/ts-node/dist/bin.js tests/test.ts",
+    "check": "ts-node tests/test.ts",
     "build": "gulp build"
   },
   "author": "",

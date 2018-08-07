@@ -20,10 +20,10 @@ export abstract class Repository {
     public abstract close(): Promise<boolean>;
 
     // repository hooks
-    public abstract async findAll<TModel extends Model>(entity: IModel<TModel>, query?: Query<TModel> | Specification<TModel>);
-    public abstract async findOne<TModel extends Model>(entity: IModel<TModel>, query?: Query<TModel> | Specification<TModel>);
-    public abstract async save<TModel extends Model>(entity: IModel<TModel>, ...models: TModel[]);
-    public abstract async destroy<TModel extends Model>(entity: IModel<TModel>, ...models: TModel[]);
+    public abstract async findAll<TModel extends Model>(entity: IModel<TModel>, query?: Query<TModel> | Specification<TModel>): Promise<TModel[]>;
+    public abstract async findOne<TModel extends Model>(entity: IModel<TModel>, query?: Query<TModel> | Specification<TModel>): Promise<TModel | null>;
+    public abstract async save<TModel extends Model>(entity: IModel<TModel>, ...models: TModel[]): Promise<TModel[]>;
+    public abstract async destroy<TModel extends Model>(entity: IModel<TModel>, ...models: TModel[]): Promise<boolean>;
 
     protected mapColumns<TModel extends Model>(entity: IModel<TModel>, to: TModel, from: TModel) {
         let keys = Reflect.getMetadata(MODELPROPERTIES, entity);
