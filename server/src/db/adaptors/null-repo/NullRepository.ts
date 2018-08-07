@@ -16,19 +16,19 @@ export class NullRepository extends Repository {
         return true;
     }
 
-    public async findAll<TModel extends Model>(entity: IModel<TModel>, query?: Query<TModel> | Specification<TModel>) {
+    public async findAll<TModel extends Model>(entity: IModel<TModel>, query?: Query<TModel> | Specification<TModel>): Promise<TModel[]> {
         return [];
     }
 
-    public async findOne<TModel extends Model>(entity: IModel<TModel>, query?: Query<TModel> | Specification<TModel>) {
+    public async findOne<TModel extends Model>(entity: IModel<TModel>, query?: Query<TModel> | Specification<TModel>): Promise<TModel | null> {
         return null;
     }
 
-    public async save<TModel extends Model>(entity: IModel<TModel>, ...models: TModel[]) {
-        return null;
+    public async save<TModel extends Model>(entity: IModel<TModel>, ...models: TModel[]): Promise<TModel[]> {
+        return [];
     }
 
-    public async destroy<TModel extends Model>(entity: IModel<TModel>, ...models: TModel[]) {
+    public async destroy<TModel extends Model>(entity: IModel<TModel>, ...models: TModel[]): Promise<boolean> {
         return true;
     }
 }
