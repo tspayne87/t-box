@@ -11,5 +11,7 @@ describe('Mongoose - Tests', function() {
         let spec = new Specification<IPerson>(x => !x.isDeleted);
         let query = spec.query();
         console.log(JSON.stringify(query, null, 2));
+
+        // Add in comment
     });
 });
