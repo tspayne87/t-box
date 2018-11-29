@@ -13,7 +13,7 @@ export class Specification<T> {
     constructor(private _spec: (item: T) => boolean, public vars?: { [key: string]: any }) { }
 
     public query(): any {
-        return null;
+        throw 'Please use an adaptor, @square-one/specification/adaptors/<adaptor>/adaptor.ts';
     }
 
     private get tokens(): SpecificationToken[] {

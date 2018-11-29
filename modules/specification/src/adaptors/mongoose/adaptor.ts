@@ -3,8 +3,6 @@ import { Token } from '../../lexor';
 
 
 Specification.prototype.query = function() {
-
-    console.log((<any>this).tokens);
     return generateQuery((<any>this).tokens, this.vars);
 };
 
