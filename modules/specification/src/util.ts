@@ -1,5 +1,11 @@
 import { Lexor } from './lexor';
 
+/**
+ * Function is meant to create a token list based on the arrow function given, this is
+ * mainly used to create the boolean functions.
+ * 
+ * @param arrowFunc The string version of an arrow function
+ */
 export function tokenizeArrowFunc(arrowFunc: string) {
     let lexor = new Lexor();
     let param = '';

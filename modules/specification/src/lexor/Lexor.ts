@@ -3,24 +3,41 @@ import { RuleResult } from './RuleResult';
 import { Rule } from './Rule';
 import { StartEndRule } from './StartEndRule';
 
+/**
+ * Helper class that you can add rules to and parse a string into tokens based on the rules given.
+ */
 export class Lexor {
+    // All the rules that this lexor should follow.
     private _rules: Rule[] = [];
-    private _state: string = 'default';
 
-    private _current: string = '';
-
-    private _paramRegex: RegExp = /^.*=>/;
-
+    /**
+     * Method is meant to add in a single rule that does not have an end to it.
+     * 
+     * @param pattern The pattern we are looking for with the lexor, make sure the begins with regex is used for each of the rules.
+     * @param callback The callback method that will be used to determine what to do with the token and what type of token this is.
+     */
     public singleRule(pattern: RegExp, callback: (match: string) => RuleResult): Lexor {
         this._rules.push(new Rule(pattern, callback));
         return this;
     }
 
+    /**
+     * Method is meant to add in a pairing rule that is mainly used to match a start and end rule.
+     * 
+     * @param pattern The starting pattern that will be used to go into the pairing system.
+     * @param endPattern The ending pattern that will be used to exit out of the starting rule.
+     * @param callback The callback method that will be used to determine what to do with the token and what type of token this is.
+     */
     public startEndRule(pattern: RegExp, endPattern: RegExp, callback: (match: string) => RuleResult): Lexor {
         this._rules.push(new StartEndRule(pattern, endPattern, callback));
         return this;
     }
 
+    /**
+     * Method is meant to convert a string into a token list for use later down the line.
+     * 
+     * @param str The string that needs to be parsed and turned into tokens.
+     */
     public parse(str: string) {
         let tokens: Token[] = [];
         while (str.length > 0) {

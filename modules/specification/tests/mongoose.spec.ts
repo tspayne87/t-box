@@ -89,5 +89,12 @@ describe('Mongoose - Tests', function() {
     it('Exception Query', () => {
         let wrong = new Specification<IPerson>(x => x.isDeleted || x.age > 2 && x.address.city === 'Aurora');
         assert.throws(wrong.query.bind(wrong), 'Please wrap logical operations that are not the same with parentheses');
+
+        let d = new Date();
+        let noValue = new Specification<IPerson>(x => x.birthday === d);
+        assert.throws(noValue.query.bind(noValue), 'Variables need to be passed in if you want to use the variable feature');
+
+        let wrongValue = new Specification<IPerson>(x => x.birthday === d, { date: d });
+        assert.throw(wrongValue.query.bind(wrongValue), 'Variable could not be found for use in the spec');
     });
 });
