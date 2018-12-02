@@ -10,9 +10,10 @@ import { Method, Status } from '../enums';
 import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
 import { Result, JsonResult, HtmlResult, JavascriptResult, CssResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
-import { IService, Model, IModel, Repository, NullRepository } from '../db';
 import { IncomingForm } from 'formidable';
 import { IFormModel } from './IFormModel';
+import { UploadedFiles, UploadFile } from './UploadFile';
+import { FileResult } from '../results/fileResult';
 
 export class InternalServer {
     private _server: http.Server;
@@ -27,14 +28,12 @@ export class InternalServer {
     private _logger: ILogger;
     private _injectables: any[];
     private _dir: string;
-    private _repository: Repository;
 
     public indexFile: string;
     public uploadDir: string;
 
-    constructor(dir?: string, repository?: Repository, logger?: ILogger) {
+    constructor(dir?: string, logger?: ILogger) {
         this._dir = dir || '';
-        this._repository = repository || new NullRepository();
         this._server = http.createServer(this.requestListener.bind(this));
         this._paramRegex = /{(.*)}/;
         this._actionRegex = /\[(.*)\]/;
@@ -48,14 +47,14 @@ export class InternalServer {
         this.indexFile = 'index.html';
         this.uploadDir = '';
 
-        this._injectables = [ this._repository ];
+        this._injectables = [ ];
     }
 
     public addControllers(...controllers: IController[]) {
         for (let i = 0; i < controllers.length; ++i) {
             let args = this.getDependencyInjections(controllers[i]);
             args.shift();
-            let controller = new controllers[i](this._repository, ...args);
+            let controller = new controllers[i](...args);
             controller._dirname = this._dir;
             for (let j = 0; j < controller._routes.length; ++j) {
                 let route = this.copyRoute<IInternalRoute>(controller._routes[j]);
@@ -75,16 +74,6 @@ export class InternalServer {
                 this._injectedRoutes.push(route);
             }
         }
-    }
-
-    public addService<T extends Model>(service: IService<T>) {
-        let args = this.getDependencyInjections(service);
-        args.shift();
-        this._injectables.push(new service(this._repository, ...args));
-    }
-
-    public addModel<T extends Model>(model: IModel<T>) {
-        this._repository.addModel(model);
     }
 
     public registerStaticLocations(...folders: string[]) {
@@ -124,13 +113,11 @@ export class InternalServer {
         return route;
     }
 
-    public async listen(...args: any[]) {
-        await this._repository.listen();
+    public listen(...args: [any, (Function | undefined)?]) {
         this._server.listen.apply(this._server, args);
     }
 
-    public async close(callback?: Function) {
-        await this._repository.close();
+    public close(callback?: Function) {
         this._server.close(callback);
     }
 
@@ -167,13 +154,13 @@ export class InternalServer {
         let currentPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? '' : parsedUrl.pathname;
         let contents = await this.readFile(currentPath);
         if (this._jsRegex.test(currentPath)) {
-            return new JavascriptResult(contents);
+            return new JavascriptResult(contents.toString('utf8'));
         } else if (this._cssRegex.test(currentPath)) {
-            return new CssResult(contents);
+            return new CssResult(contents.toString('utf8'));
         }
 
-        let result = new Result();
-        result.body = contents;
+        let pathLocation = currentPath.split('/');
+        let result = new FileResult(pathLocation[pathLocation.length - 1], contents);
         return result;
     }
 
@@ -182,8 +169,8 @@ export class InternalServer {
     }
 
     private readFile(filePath: string) {
-        return new Promise<string>((resolve, reject) => {
-            fs.readFile(path.join(this._dir, filePath), 'utf8', (err, data) => {
+        return new Promise<Buffer>((resolve, reject) => {
+            fs.readFile(path.join(this._dir, filePath), (err, data) => {
                 if (err) return reject(err);
                 resolve(data);
             });
@@ -235,7 +222,7 @@ export class InternalServer {
 
     //#region Processors
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse, form: IFormModel | null, body?: any) {
-        let response = new JsonResult();
+        let response: Result = new JsonResult();
         
         try {
             if (body && req.headers['content-type'] === 'application/json') body = JSON.parse(body);
@@ -260,7 +247,7 @@ export class InternalServer {
                     response = await this.getStaticResult(parsedUrl);
                 } else {
                     let index = await this.readIndex();
-                    response = new HtmlResult(index);
+                    response = new HtmlResult(index.toString('utf8'));
                 }
             }
         } catch (err) {
@@ -362,6 +349,15 @@ export class InternalServer {
                 result = { fields, files };
             });
             form.on('end', () => {
+                if (result.files !== undefined) {
+                    let keys = Object.keys(result.files);
+                    let uploadedFiles: UploadedFiles = {};
+                    for (let i = 0; i < keys.length; ++i) {
+                        uploadedFiles[keys[i]] = new UploadFile(result.files[keys[i]]);
+                    }
+                    result.files = uploadedFiles;
+                }
+
                 resolve(result);
             });
         });

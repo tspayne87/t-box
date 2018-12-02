@@ -1,5 +1,4 @@
 import { InternalServer } from './internal';
-import { Repository, NullRepository } from './db';
 
 import { ILogger, ConsoleLogger } from './loggers';
 import * as path from 'path';
@@ -13,10 +12,10 @@ export class Server {
     public get uploadDir() { return this._server.uploadDir; }
     public set uploadDir(dir) { this._server.uploadDir = dir; }
 
-    constructor(dir?: string, repository?: Repository, logger?: ILogger) {
+    constructor(dir?: string, logger?: ILogger) {
         this._dir = dir || '';
-        this._server = new InternalServer(dir, repository, logger);
         this._logger = logger ? logger : new ConsoleLogger();
+        this._server = new InternalServer(dir, this._logger);
     }
 
     public registerStaticFolders(...folders: string[]) {
@@ -24,8 +23,6 @@ export class Server {
     }
 
     public async register(context: string | __WebpackModuleApi.RequireContext, dirname?: string) {
-        await this.registerModels(context, dirname);
-        await this.registerServices(context, dirname);
         await this.registerControllers(context, dirname);
         await this.registerInjectors(context, dirname);
     }
@@ -46,26 +43,6 @@ export class Server {
             let keys = Object.keys(items[i]);
             for (let j = 0; j < keys.length; ++j) {
                 this._server.addInjectors(items[i][keys[j]]);
-            }
-        }
-    }
-
-    public async registerModels(context: string | __WebpackModuleApi.RequireContext, dirname?: string) {
-        let items = await this.findItems(context, dirname || this._dir, 'model');
-        for (let i = 0; i < items.length; ++i) {
-            let keys = Object.keys(items[i]);
-            for (let j = 0; j < keys.length; ++j) {
-                this._server.addModel(items[i][keys[j]]);
-            }
-        }
-    }
-
-    public async registerServices(context: string | __WebpackModuleApi.RequireContext, dirname?: string) {
-        let items = await this.findItems(context, dirname || this._dir, 'service');
-        for (let i = 0; i < items.length; ++i) {
-            let keys = Object.keys(items[i]);
-            for (let j = 0; j < keys.length; ++j) {
-                this._server.addService(items[i][keys[j]]);
             }
         }
     }
@@ -93,7 +70,7 @@ export class Server {
         });
     }
 
-    public start(...args: any[]) {
+    public start(...args: [any, (Function | undefined)?]) {
         this._server.listen.apply(this._server, args);
     }
 

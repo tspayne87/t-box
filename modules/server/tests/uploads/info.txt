@@ -1,0 +1,2 @@
+Adding this file so the uploads folder is included in git, this is mainly used to test out uploading files through the server.
+All files that are uploaded should be removed in the testing process so unnecessary files are not included in the repo.

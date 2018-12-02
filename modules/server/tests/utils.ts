@@ -2,15 +2,6 @@ import * as HTTP from 'http';
 import * as URL from 'url';
 import * as fs from 'fs';
 
-export const connectionOptions = {
-    logging: false,
-    dialect: 'mssql',
-    dialectModulePath: 'sequelize-msnodesqlv8',
-    dialectOptions: {
-        connectionString: 'Driver={SQL Server Native Client 11.0};Server=TETHYS;Database=TestApp;Trusted_Connection=yes;'
-    }
-};
-
 export class Http {
     public status?: number;
     public headers: HTTP.IncomingHttpHeaders = <any>{};
@@ -27,7 +18,7 @@ export class Http {
         return this.Request(url, 'DELETE', data);
     }
 
-    public File(url: string, src: string) {
+    public File(url: string, src: string, fileName: string) {
         return new Promise<any>((resolve, reject) => {
             let parsedUrl = URL.parse(url);
             fs.readFile(src, (err, data) => {
@@ -38,7 +29,7 @@ export class Http {
                     preamble = '',
                     epilogue = '',
                     headers = [
-                        'Content-Disposition: form-data; name="fileToUpload"; filename="test.jpg"' + crlf,
+                        `Content-Disposition: form-data; name="fileToUpload"; filename="${fileName}"${crlf}`,
                         'Content-Type: text/plain' + crlf
                     ],
                     closeDelimiter = delimiter + '--';

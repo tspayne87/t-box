@@ -1,17 +1,17 @@
-import { Route, Get, Post, Delete, Controller, Repository } from '../../src';
-import { UserService } from '../services/user.service';
+import { Route, Get, Post, Delete, Controller } from '../../src';
+import * as path from 'path';
 
 @Route('user')
 export class UserController extends Controller {
     public data: string;
 
-    constructor(repository: Repository, private _userService: UserService) {
-        super(repository);
+    constructor() {
+        super();
         this.data = 'Searching...';
     }
 
     @Get('[action]')
-    public async example() {
+    public async index() {
         return this.html(await this.promise());
     }
 
@@ -44,7 +44,12 @@ export class UserController extends Controller {
     }
 
     @Post('upload')
-    public upload(): boolean {
-        return this._formFiles !== undefined;
+    public async upload() {
+        if (this._formFiles !== undefined) {
+            let file = this._formFiles['fileToUpload'];
+            let newLocation = path.join(this._dirname, 'uploads', 'user_upload' + path.extname(file.name).toLowerCase());
+            return await file.copy(newLocation);
+        }
+        return false;
     }
 }
