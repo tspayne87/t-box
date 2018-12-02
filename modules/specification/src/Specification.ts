@@ -46,7 +46,7 @@ export class Specification<T> {
             } else {
                 if (token.type === 'ref' || token.type === 'var' || token.type === 'val') {
                     if (token.type === 'ref') {
-                        if (next.type === 'and' || next.type === 'or') {
+                        if (next !== undefined && (next.type === 'and' || next.type === 'or')) {
                             data.push({ left: token, op: new Token('eq', '==='), right: new Token('val', true) });
                         } else {
                             data.push({ left: token, op: tokens[++i], right: tokens[++i] || new Token('val', true) });

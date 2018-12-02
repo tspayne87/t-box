@@ -16,8 +16,8 @@ export function tokenizeArrowFunc(arrowFunc: string) {
     lexor.singleRule(/^\|\|/, () => ({ accept: 'or' }));
     lexor.singleRule(/^==+/, () => ({ accept: 'eq' }));
     lexor.singleRule(/^!=+/, () => ({ accept: 'ne' }));
-    lexor.singleRule(/^>=*/, match => ({ accept: /=/.test(match[0]) ? 'gte' : 'gt' }));
-    lexor.singleRule(/^<=*/, match => ({ accept : /=/.test(match[0]) ? 'lte' : 'lt' }));
+    lexor.singleRule(/^>=*/, match => ({ accept: /=/.test(match) ? 'gte' : 'gt' }));
+    lexor.singleRule(/^<=*/, match => ({ accept : /=/.test(match) ? 'lte' : 'lt' }));
     lexor.singleRule(/^!/, () => ({ accept: 'not' }));
     //#endregion
 
@@ -29,7 +29,7 @@ export function tokenizeArrowFunc(arrowFunc: string) {
     //#region Rules for values
     lexor.singleRule(/^null/, () => ({ accept: 'val' }));
     lexor.singleRule(/^undefined/, () => ({ accept: 'val', value: null }));
-    lexor.singleRule(/^new .*\(.*\)/, match => ({ accept: 'val', value: eval(match) }));
+    lexor.startEndRule(/^new [^\(]*\(/, /\)$/, match => ({ accept: 'val', value: eval(match) }));
     //#endregion
 
     //#region String rules
@@ -39,6 +39,10 @@ export function tokenizeArrowFunc(arrowFunc: string) {
 
     //#region Boolean rules
     lexor.singleRule(/^(true|false)/, match => ({ accept: 'val', value: match === 'true' }));
+    //#endregion
+
+    //#region Number rules
+    lexor.singleRule(/^[\+\-]?\d*\.?\d+(?:[Ee][\+\-]?\d+)?/, match => ({ accept: 'val', value: parseFloat(match) }));
     //#endregion
 
     //#region Rules for reference, functions and variables
