@@ -15,15 +15,42 @@ export class UploadFile {
 
     constructor(private file: File) { }
 
-    public copy(location: fs.PathLike) {
-        return new Promise<boolean>((resolve , reject) => {
+    public copy(location: fs.PathLike, options?: fs.WriteFileOptions) {
+        return new Promise<boolean>((resolve, reject) => {
             fs.readFile(this.path, (err, data) => {
                 if (err) return reject(err);
-                fs.writeFile(location, data, (err) => {
-                    if (err) return reject(err);
-                    resolve(true);
-                });
+                if (options !== undefined) {
+                    fs.writeFile(location, data, options, (err) => {
+                        if (err) return reject(err);
+                        resolve(true);
+                    });
+                } else {
+                    fs.writeFile(location, data, (err) => {
+                        if (err) return reject(err);
+                        resolve(true);
+                    });
+                }
             });
+        });
+    }
+
+    public read(options?: fs.WriteFileOptions) {
+        return new Promise<Buffer>((resolve, reject) => {
+            if (options !== undefined) {
+                fs.readFile(this.path, options, (err, data) => {
+                    if (err) return reject(err);
+                    if (typeof data === 'string') {
+                        resolve(Buffer.from(data));
+                    } else {
+                        resolve(data);
+                    }
+                });
+            } else {
+                fs.readFile(this.path, (err, data) => {
+                    if (err) return reject(err);
+                    resolve(data);
+                });
+            }
         });
     }
 }

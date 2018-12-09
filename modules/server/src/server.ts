@@ -1,5 +1,5 @@
 import { InternalServer } from './internal';
-
+import { Dependency } from './Dependency';
 import { ILogger, ConsoleLogger } from './loggers';
 import * as path from 'path';
 import * as glob from 'glob';
@@ -12,10 +12,10 @@ export class Server {
     public get uploadDir() { return this._server.uploadDir; }
     public set uploadDir(dir) { this._server.uploadDir = dir; }
 
-    constructor(dir?: string, logger?: ILogger) {
+    constructor(dependency: Dependency, dir?: string, logger?: ILogger) {
         this._dir = dir || '';
         this._logger = logger ? logger : new ConsoleLogger();
-        this._server = new InternalServer(dir, this._logger);
+        this._server = new InternalServer(dependency, this._dir, this._logger);
     }
 
     public registerStaticFolders(...folders: string[]) {
@@ -50,9 +50,8 @@ export class Server {
     private findItems(context: string | __WebpackModuleApi.RequireContext, dirname: string, type: string) {
         return new Promise<any[]>((resolve, reject) => {
             if (typeof context === 'string') {
-                glob(`${dirname}${path.sep}${context}${path.sep}**${path.sep}*.${type}.js`, (err, files) => {
+                glob(`${dirname}${path.sep}${context}${path.sep}**${path.sep}*.${type}.?(js|ts)`, (err, files) => {
                     if (err) return reject(err);
-
                     let items: any[] = [];
                     try {
                         for (let i = 0; i < files.length; ++i) items.push(require(files[i]));

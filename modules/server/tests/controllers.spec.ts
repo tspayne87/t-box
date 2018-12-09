@@ -1,17 +1,18 @@
 import { assert } from 'chai';
 import 'mocha';
 import { InternalServer } from '../src/internal';
+import { Dependency } from '../src/Dependency';
 import { UserController } from './controllers/user.controller';
 import { Http } from './utils';
 import * as fs from 'fs';
 import * as path from 'path';
 
-describe('/user', function() {
+describe('{Controller}:/user', function() {
     let id = '4543-38483-29983-2093';
     let port = 8000;
 
     let http = new Http();
-    let server = new InternalServer(__dirname);
+    let server = new InternalServer(new Dependency(), __dirname);
     server.addControllers(UserController);
 
     before(function () {

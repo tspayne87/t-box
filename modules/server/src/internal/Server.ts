@@ -14,8 +14,10 @@ import { IncomingForm } from 'formidable';
 import { IFormModel } from './IFormModel';
 import { UploadedFiles, UploadFile } from './UploadFile';
 import { FileResult } from '../results/fileResult';
+import { Dependency } from '../Dependency';
 
 export class InternalServer {
+    private _dependency: Dependency;
     private _server: http.Server;
     private _staticFolders: string[][];
     private _routes: IInternalRoute[];
@@ -26,14 +28,13 @@ export class InternalServer {
     private _cssRegex: RegExp;
     private _faviconRegex: RegExp;
     private _logger: ILogger;
-    private _injectables: any[];
     private _dir: string;
 
-    public indexFile: string;
     public uploadDir: string;
 
-    constructor(dir?: string, logger?: ILogger) {
+    constructor(dependency: Dependency, dir?: string, logger?: ILogger) {
         this._dir = dir || '';
+        this._dependency = dependency;
         this._server = http.createServer(this.requestListener.bind(this));
         this._paramRegex = /{(.*)}/;
         this._actionRegex = /\[(.*)\]/;
@@ -44,17 +45,12 @@ export class InternalServer {
         this._staticFolders = [];
         this._routes = [];
         this._logger = logger ? logger : new ConsoleLogger();
-        this.indexFile = 'index.html';
         this.uploadDir = '';
-
-        this._injectables = [ ];
     }
 
     public addControllers(...controllers: IController[]) {
         for (let i = 0; i < controllers.length; ++i) {
-            let args = this.getDependencyInjections(controllers[i]);
-            args.shift();
-            let controller = new controllers[i](...args);
+            let controller = this._dependency.locate(controllers[i]);
             controller._dirname = this._dir;
             for (let j = 0; j < controller._routes.length; ++j) {
                 let route = this.copyRoute<IInternalRoute>(controller._routes[j]);
@@ -66,8 +62,7 @@ export class InternalServer {
 
     public addInjectors(...injectors: IInjector[]) {
         for (let i = 0; i < injectors.length; ++i) {
-            let args = this.getDependencyInjections(injectors[i]);
-            let injector = new injectors[i](...args);
+            let injector = this._dependency.locate(injectors[i]);
             for (let j = 0; j < injector._routes.length; ++j) {
                 let route = this.copyRoute<IInternalInjectedRoute>(injector._routes[j]);
                 route.injector = injector;
@@ -78,22 +73,6 @@ export class InternalServer {
 
     public registerStaticLocations(...folders: string[]) {
         this._staticFolders = this._staticFolders.concat(folders.map(x => x.split('/')));
-    }
-
-    public getDependencyInjections(item: any): any[] {
-        let args: any[] = [];
-        let params = Reflect.getMetadata('design:paramtypes', item);
-        if (params !== undefined) {
-            for (let i = 0; i < params.length; ++i) {
-                let instanceIndex = this._injectables.findIndex(x => x instanceof params[i]);
-                if (instanceIndex > -1) {
-                    args.push(this._injectables[instanceIndex]);
-                } else {
-                    args.push(null);
-                }
-            }
-        }
-        return args;
     }
 
     private copyRoute<I extends IRoute>(oldRoute: IRoute): I {
@@ -115,10 +94,12 @@ export class InternalServer {
 
     public listen(...args: [any, (Function | undefined)?]) {
         this._server.listen.apply(this._server, args);
+        this._logger.log('Server Started');
     }
 
     public close(callback?: Function) {
         this._server.close(callback);
+        this._logger.log('Server Stopped');
     }
 
     private requestListener(req: http.IncomingMessage, res: http.ServerResponse) {
@@ -162,10 +143,6 @@ export class InternalServer {
         let pathLocation = currentPath.split('/');
         let result = new FileResult(pathLocation[pathLocation.length - 1], contents);
         return result;
-    }
-
-    private readIndex() {
-        return this.readFile(this.indexFile);
     }
 
     private readFile(filePath: string) {
@@ -246,8 +223,7 @@ export class InternalServer {
                 if (this.isStaticResource(parsedUrl)) {
                     response = await this.getStaticResult(parsedUrl);
                 } else {
-                    let index = await this.readIndex();
-                    response = new HtmlResult(index.toString('utf8'));
+                    response.status = Status.BadRequest;
                 }
             }
         } catch (err) {
