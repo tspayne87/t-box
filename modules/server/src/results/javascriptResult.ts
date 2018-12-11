@@ -7,7 +7,7 @@ export class JavascriptResult extends Result {
         this.body = javascript;
     }
 
-    public processResponse(res: ServerResponse) {
+    public async processResponse(res: ServerResponse) {
         this.headers['Content-Type'] = 'application/javascript';
         super.processResponse(res);
     }

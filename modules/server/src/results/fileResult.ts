@@ -15,7 +15,7 @@ export class FileResult extends Result {
         this._fileName = fileName;
     }
 
-    public processResponse(res: ServerResponse) {
+    public async processResponse(res: ServerResponse) {
         this.headers['Content-Type'] = 'application/octet-stream';
         this.headers['Content-Disposition'] = `attachment; filename=${this._fileName}`;
         this.headers['Content-Length'] = (<Buffer>this.body).length.toString();

@@ -172,7 +172,7 @@ export class InternalServer {
 
     private getRoutes<R extends IRoute>(parsedUrl: url.UrlWithParsedQuery, method: string, allRoutes: R[]): R[] {
         let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
-        let possibleRoutes = allRoutes.filter(x => x.splitPath.length === splitPath.length);
+        let possibleRoutes = allRoutes.filter(x => x.splitPath.length === splitPath.length || x.path === '*');
         switch (method) {
             case 'GET':
                 possibleRoutes = possibleRoutes.filter(x => x.method === Method.Get);
@@ -193,6 +193,10 @@ export class InternalServer {
                     includeRoute = false;
             }
             if (includeRoute) routes.push(possibleRoutes[i]);
+        }
+
+        if (routes.length === 0 && possibleRoutes.findIndex(x => x.path === '*') > -1) {
+            routes = possibleRoutes.filter(x => x.path === '*');
         }
         return routes;
     }
@@ -219,6 +223,7 @@ export class InternalServer {
                 } else {
                     response.body = result;
                 }
+                response.route = routes[0];
             } else {
                 if (this.isStaticResource(parsedUrl)) {
                     response = await this.getStaticResult(parsedUrl);
@@ -231,7 +236,7 @@ export class InternalServer {
             response.status = Status.InternalServerError;
             response.body = { message: 'Internal Server Error' };
         } finally {
-            response.processResponse(res);
+            await response.processResponse(res);
         }
     }
 
@@ -353,11 +358,11 @@ export class InternalServer {
     //#endregion
 
     //#region Responses
-    private sendError(req: http.IncomingMessage, res: http.ServerResponse) {
+    private async sendError(req: http.IncomingMessage, res: http.ServerResponse) {
         let response = new JsonResult();
         response.status = Status.InternalServerError;
         response.body = { message: 'Internal Server Error' };
-        response.processResponse(res);
+        await response.processResponse(res);
     }
     //#endregion
 }

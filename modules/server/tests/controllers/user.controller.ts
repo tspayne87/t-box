@@ -1,4 +1,4 @@
-import { Route, Get, Post, Delete, Controller } from '../../src';
+import { Route, Get, Post, Delete, Controller, AssetResult } from '../../src';
 import * as path from 'path';
 
 @Route('user')
@@ -13,6 +13,21 @@ export class UserController extends Controller {
     @Get('[action]')
     public async index() {
         return this.html(await this.promise());
+    }
+
+    @Get('/*')
+    public all() {
+        return 'index.html';
+    }
+
+    @Post('/test')
+    public testUser(user: any): any {
+        return user;
+    }
+
+    @Get('/index')
+    public testIndex() {
+        return new AssetResult('index.html');
     }
 
     private promise() {

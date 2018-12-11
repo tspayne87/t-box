@@ -7,7 +7,7 @@ export class CssResult extends Result {
         this.body = css;
     }
 
-    public processResponse(res: ServerResponse) {
+    public async processResponse(res: ServerResponse) {
         this.headers['Content-Type'] = 'text/css';
         super.processResponse(res);
     }

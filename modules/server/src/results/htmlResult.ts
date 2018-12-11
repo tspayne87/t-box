@@ -7,7 +7,7 @@ export class HtmlResult extends Result {
         this.body = html;
     }
 
-    public processResponse(res: ServerResponse) {
+    public async processResponse(res: ServerResponse) {
         this.headers['Content-Type'] = 'text/html';
         super.processResponse(res);
     }

@@ -15,6 +15,8 @@ describe('{Controller}:/user', function() {
     let server = new InternalServer(new Dependency(), __dirname);
     server.addControllers(UserController);
 
+    let fileContents = fs.readFileSync(path.join(__dirname, 'controllers', 'index.html')).toString();
+
     before(function () {
         server.listen(port);
     });
@@ -69,6 +71,39 @@ describe('{Controller}:/user', function() {
                 assert.equal(http.status, 200);
                 assert.equal(http.headers['content-type'], 'application/json');
                 assert.equal(true, data);
+                done();
+            })
+            .catch((err) => done(err));
+    });
+
+    it('{GET}:/*', (done) => {
+        http.Get(`http://localhost:${port}`)
+            .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'application/json');
+                assert.equal('index.html', data);
+                done();
+            })
+            .catch((err) => done(err));
+    });
+
+    it('{POST}:/test', (done) => {
+        http.Post(`http://localhost:${port}/test`, { id })
+            .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'application/json');
+                assert.deepEqual({ id }, data);
+                done();
+            })
+            .catch((err) => done(err));
+    });
+
+    it('{POST}:/index', (done) => {
+        http.Get(`http://localhost:${port}/index`)
+            .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'text/html');
+                assert.deepEqual(fileContents, data);
                 done();
             })
             .catch((err) => done(err));

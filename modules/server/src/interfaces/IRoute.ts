@@ -6,4 +6,5 @@ export interface IRoute {
     key: string;
     params: string[];
     splitPath: string[];
+    location: string;
 }
