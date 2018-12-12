@@ -210,23 +210,23 @@ export class InternalServer {
             if (form !== null) body = form.fields;
 
             let parsedUrl = url.parse((req.url || '').substr(1), true);
-            let routes = this.getRoutes(parsedUrl, req.method || '', this._routes);
-            let injectors = this.getRoutes(parsedUrl, req.method || '', this._injectedRoutes);
-            if (routes.length > 0) {
-                let result = await this.processRoute(routes[0], parsedUrl, form, body);
-                for (let i = 0; i < injectors.length; ++i) {
-                    result = await this.processInjector(injectors[i], parsedUrl, body, result);
-                }
-
-                if (result instanceof Result) {
-                    response = result;
-                } else {
-                    response.body = result;
-                }
-                response.route = routes[0];
+            if (this.isStaticResource(parsedUrl)) {
+                response = await this.getStaticResult(parsedUrl);
             } else {
-                if (this.isStaticResource(parsedUrl)) {
-                    response = await this.getStaticResult(parsedUrl);
+                let routes = this.getRoutes(parsedUrl, req.method || '', this._routes);
+                let injectors = this.getRoutes(parsedUrl, req.method || '', this._injectedRoutes);
+                if (routes.length > 0) {
+                    let result = await this.processRoute(routes[0], parsedUrl, form, body);
+                    for (let i = 0; i < injectors.length; ++i) {
+                        result = await this.processInjector(injectors[i], parsedUrl, body, result);
+                    }
+
+                    if (result instanceof Result) {
+                        response = result;
+                    } else {
+                        response.body = result;
+                    }
+                    response.route = routes[0];
                 } else {
                     response.status = Status.BadRequest;
                 }
