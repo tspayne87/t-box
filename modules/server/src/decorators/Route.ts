@@ -1,7 +1,7 @@
 let rootRegex = /^\//;
 let fileRegex = /\((.*):\d+:\d+\)/;
 
-function Route(path: string): any {
+function Route(path?: string): any {
     let previousFile: string;
     let err = new Error();
     if (err.stack !== undefined) {
@@ -26,7 +26,12 @@ function Route(path: string): any {
                         if (rootRegex.test(route.path)) {
                             route.path = route.path.substr(1);
                         } else {
-                            route.path = route.path.length > 0 ? `${path}/${route.path}` : path;
+                            if (path !== undefined) {
+                                route.path = route.path.length > 0 ? `${path}/${route.path}` : path;
+                            } else {
+                                let message = `Could not create blank route, please add a path to either the Route attribute, the error occured in ${previousFile}`;
+                                if (route.path.length === 0) throw new Error(message);
+                            }
                         }
                         route.splitPath = route.path.split('/');
                         route.location = previousFile;

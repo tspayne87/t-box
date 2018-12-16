@@ -8,7 +8,7 @@ import { IController } from '../Controller';
 import { IInjector } from '../Injector';
 import { Method, Status } from '../enums';
 import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
-import { Result, JsonResult, HtmlResult, JavascriptResult, CssResult } from '../results';
+import { Result, JsonResult, AssetResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
 import { IncomingForm } from 'formidable';
 import { IFormModel } from './IFormModel';
@@ -24,8 +24,6 @@ export class InternalServer {
     private _injectedRoutes: IInternalInjectedRoute[];
     private _paramRegex: RegExp;
     private _actionRegex: RegExp;
-    private _jsRegex: RegExp;
-    private _cssRegex: RegExp;
     private _faviconRegex: RegExp;
     private _logger: ILogger;
     private _dir: string;
@@ -38,8 +36,6 @@ export class InternalServer {
         this._server = http.createServer(this.requestListener.bind(this));
         this._paramRegex = /{(.*)}/;
         this._actionRegex = /\[(.*)\]/;
-        this._jsRegex = /\.js$/;
-        this._cssRegex = /\.css$/;
         this._faviconRegex = /favicon\.icon$/;
         this._injectedRoutes = [];
         this._staticFolders = [];
@@ -131,18 +127,10 @@ export class InternalServer {
         }
     }
 
-    private async getStaticResult(parsedUrl: url.UrlWithParsedQuery): Promise<Result> {
+    private getStaticResult(parsedUrl: url.UrlWithParsedQuery): Result {
         let currentPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? '' : parsedUrl.pathname;
-        let contents = await this.readFile(currentPath);
-        if (this._jsRegex.test(currentPath)) {
-            return new JavascriptResult(contents.toString('utf8'));
-        } else if (this._cssRegex.test(currentPath)) {
-            return new CssResult(contents.toString('utf8'));
-        }
-
-        let pathLocation = currentPath.split('/');
-        let result = new FileResult(pathLocation[pathLocation.length - 1], contents);
-        return result;
+        let fullPath = path.join(this._dir, currentPath);
+        return new AssetResult(fullPath);
     }
 
     private readFile(filePath: string) {
@@ -211,7 +199,7 @@ export class InternalServer {
 
             let parsedUrl = url.parse((req.url || '').substr(1), true);
             if (this.isStaticResource(parsedUrl)) {
-                response = await this.getStaticResult(parsedUrl);
+                response = this.getStaticResult(parsedUrl);
             } else {
                 let routes = this.getRoutes(parsedUrl, req.method || '', this._routes);
                 let injectors = this.getRoutes(parsedUrl, req.method || '', this._injectedRoutes);
