@@ -46,7 +46,7 @@ export class InternalServer {
 
     public addControllers(...controllers: IController[]) {
         for (let i = 0; i < controllers.length; ++i) {
-            let controller = this._dependency.locate(controllers[i]);
+            let controller = this._dependency.resolve(controllers[i]);
             controller._dirname = this._dir;
             for (let j = 0; j < controller._routes.length; ++j) {
                 let route = this.copyRoute<IInternalRoute>(controller._routes[j]);
@@ -58,7 +58,7 @@ export class InternalServer {
 
     public addInjectors(...injectors: IInjector[]) {
         for (let i = 0; i < injectors.length; ++i) {
-            let injector = this._dependency.locate(injectors[i]);
+            let injector = this._dependency.resolve(injectors[i]);
             for (let j = 0; j < injector._routes.length; ++j) {
                 let route = this.copyRoute<IInternalInjectedRoute>(injector._routes[j]);
                 route.injector = injector;

@@ -1,5 +1,10 @@
 import { Method } from './enums';
 
+/**
+ * Helper function to build out the routes for the decorators and the different HTTP methods.
+ * 
+ * @param method The method that this route decorator should use when building out the routes for the controller.
+ */
 export function createRouteDecorator(method: Method): (path?: string) => (target: any, key: string, descriptor: PropertyDescriptor) => void {
     return (path: string = '') => {
         return (target: any, key: string, descriptor: PropertyDescriptor) => {

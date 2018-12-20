@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import 'mocha';
-import { InternalServer } from '../src/internal';
+import { Server } from '../src';
 import { Dependency } from '../src/Dependency';
 import { UserController } from './controllers/user.controller';
 import { Http } from './utils';
@@ -12,13 +12,13 @@ describe('{Controller}:/user', function() {
     let port = 8000;
 
     let http = new Http();
-    let server = new InternalServer(new Dependency(), __dirname);
-    server.addControllers(UserController);
+    let server = new Server(new Dependency(), __dirname);
+    server.register('controllers');
 
     let fileContents = fs.readFileSync(path.join(__dirname, 'controllers', 'index.html')).toString();
 
     before(function () {
-        server.listen(port);
+        server.start(port);
     });
 
     it('{GET}:/user', (done) => {
@@ -163,6 +163,6 @@ describe('{Controller}:/user', function() {
     });
 
     after(function() {
-        server.close();
+        server.stop();
     });
 });
