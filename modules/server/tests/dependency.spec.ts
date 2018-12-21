@@ -31,7 +31,7 @@ describe('{Dependency}', function() {
         dependency.addSingle(new Tiger());
         dependency.addSingle(new Kangaroo());
 
-        let zoo = dependency.locate(Zoo);
+        let zoo = dependency.resolve(Zoo);
         assert.equal(zoo.t.legs, 4);
         assert.equal(zoo.t.arms, 0);
         assert.equal(zoo.k.legs, 2);
