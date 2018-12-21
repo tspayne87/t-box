@@ -1,4 +1,9 @@
-function InjectedRoute(path: string): any {
+/**
+ * Attribute for injectors to give the controller route information that will be used by the server.
+ * 
+ * @param path The injecotr path that needs to be used for all the http method attributes in this class.
+ */
+export function InjectedRoute(path: string): any {
     return (target: any): any => {
         return class Injector extends target {
             constructor(...args: any[]) {
@@ -17,5 +22,3 @@ function InjectedRoute(path: string): any {
         };
     };
 }
-
-export { InjectedRoute };

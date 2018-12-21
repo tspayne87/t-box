@@ -13,23 +13,65 @@ import { ILogger, ConsoleLogger } from '../loggers';
 import { IncomingForm } from 'formidable';
 import { IFormModel } from './IFormModel';
 import { UploadedFiles, UploadFile } from './UploadFile';
-import { FileResult } from '../results/fileResult';
 import { Dependency } from '../Dependency';
 
+/**
+ * Internal server class that deals with the underlining http module to listen on a port for requests and process
+ * those requests with the routes found on the controllers registered.
+ */
 export class InternalServer {
+    /**
+     * The dependency injection service that will build out controllers and add in their dependencies.
+     */
     private _dependency: Dependency;
+    /**
+     * The underlining http server the listen on.
+     */
     private _server: http.Server;
+    /**
+     * The locations of the static folders based on their routes and folder locations.
+     */
     private _staticFolders: string[][];
+    /**
+     * The routes that should be used be the server to determine which controller and method should be used.
+     */
     private _routes: IInternalRoute[];
+    /**
+     * The injected routes that should be called after the routes have finished their processing.
+     */
     private _injectedRoutes: IInternalInjectedRoute[];
+    /**
+     * The parameter regex that should be used to pass arguments from the url into the methods on the controllers.
+     */
     private _paramRegex: RegExp;
+    /**
+     * The action regex that will replace a segment of the url with the name of the method it is attached from.
+     */
     private _actionRegex: RegExp;
+    /**
+     * The favicon regex to determine if the server should serve up the favicon instead of the routes.
+     */
     private _faviconRegex: RegExp;
+    /**
+     * The logger the server should use if something is wrong or logs or info needs to be shown.
+     */
     private _logger: ILogger;
+    /**
+     * The current directory that the server is running in.
+     */
     private _dir: string;
-
+    /**
+     * The upload directory that should be used for formidable.
+     */
     public uploadDir: string;
 
+    /**
+     * Constructor method that will build out a basic internal server.
+     * 
+     * @param dependency The dependency server that should be used for injectable objects.
+     * @param dir The directory that the server should be running in.
+     * @param logger The custom logger that should be used to get information as the server runs.
+     */
     constructor(dependency: Dependency, dir?: string, logger?: ILogger) {
         this._dir = dir || '';
         this._dependency = dependency;
@@ -44,6 +86,11 @@ export class InternalServer {
         this.uploadDir = '';
     }
 
+    /**
+     * Method is meant to handle the additions of the controllers to the server.
+     * 
+     * @param controllers The controllers that need to be added to the server for use.
+     */
     public addControllers(...controllers: IController[]) {
         for (let i = 0; i < controllers.length; ++i) {
             let controller = this._dependency.resolve(controllers[i]);
@@ -56,6 +103,11 @@ export class InternalServer {
         }
     }
 
+    /**
+     * Method is meant to handle the additions of the injectors to the server.
+     * 
+     * @param injectors The injectors that need the be added to the server for use.
+     */
     public addInjectors(...injectors: IInjector[]) {
         for (let i = 0; i < injectors.length; ++i) {
             let injector = this._dependency.resolve(injectors[i]);
@@ -67,14 +119,47 @@ export class InternalServer {
         }
     }
 
+    /**
+     * Method is meant to register static folder locations.
+     * 
+     * @param folders The static folders that need to be added to the server.
+     */
     public registerStaticLocations(...folders: string[]) {
         this._staticFolders = this._staticFolders.concat(folders.map(x => x.split('/')));
     }
 
+    /**
+     * Method is meant to start listening for the internal http server.
+     * 
+     * @param args The arguments that need to be passed to the http server listen method.
+     */
+    public listen(...args: [any, (Function | undefined)?]) {
+        this._server.listen.apply(this._server, args);
+        this._logger.log('Server Started');
+    }
+
+    /**
+     * Method is meant to close the internal http server.
+     */
+    public close(): Promise<void> {
+        return new Promise<void>(resolve => {
+            this._server.close(() => {
+                this._logger.log('Server Stopped');
+                resolve();
+            });
+        });
+    }
+
+    //#region Private Methods.
+    /**
+     * Method is meant to copy a route and process it for use by the server.
+     * 
+     * @param oldRoute The old route that is being copied.
+     */
     private copyRoute<I extends IRoute>(oldRoute: IRoute): I {
         let route = Object.assign<I, IRoute>(<I>{}, oldRoute);
 
-        // Over-ride some of hte actions to deal with different exceptions.
+        // Override some of the actions to deal with different exceptions.
         for (let i = 0; i < route.splitPath.length; ++i) {
             let matches = route.splitPath[i].match(this._actionRegex);
             if (matches !== null) {
@@ -88,16 +173,12 @@ export class InternalServer {
         return route;
     }
 
-    public listen(...args: [any, (Function | undefined)?]) {
-        this._server.listen.apply(this._server, args);
-        this._logger.log('Server Started');
-    }
-
-    public close(callback?: Function) {
-        this._server.close(callback);
-        this._logger.log('Server Stopped');
-    }
-
+    /**
+     * Method is meant to be the callback for the http server when a request is sent in from the client.
+     * 
+     * @param req The http request object.
+     * @param res The http response object.
+     */
     private requestListener(req: http.IncomingMessage, res: http.ServerResponse) {
         if (req.method !== undefined && req.method.toLowerCase() === 'post') {
             this.processForm(req)
@@ -127,21 +208,22 @@ export class InternalServer {
         }
     }
 
+    /**
+     * Helper method to get the static result asset.
+     * 
+     * @param parsedUrl The parsed url to get the asset from the server.
+     */
     private getStaticResult(parsedUrl: url.UrlWithParsedQuery): Result {
         let currentPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? '' : parsedUrl.pathname;
         let fullPath = path.join(this._dir, currentPath);
         return new AssetResult(fullPath);
     }
 
-    private readFile(filePath: string) {
-        return new Promise<Buffer>((resolve, reject) => {
-            fs.readFile(path.join(this._dir, filePath), (err, data) => {
-                if (err) return reject(err);
-                resolve(data);
-            });
-        });
-    }
-
+    /**
+     * Helper method to determine if this is static resource that should be served by the server.
+     * 
+     * @param parsedUrl The parsed url from the client.
+     */
     private isStaticResource(parsedUrl: url.UrlWithParsedQuery) {
         let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
         for (let i = 0; i < this._staticFolders.length; ++i) {
@@ -154,10 +236,22 @@ export class InternalServer {
         return false;
     }
 
+    /**
+     * Helper method to determine if this is the favicon that should be served.
+     * 
+     * @param parsedUrl The parsed url from the client.
+     */
     private isFavicon(parsedUrl: url.UrlWithParsedQuery) {
         return parsedUrl.pathname !== null && parsedUrl.pathname !== undefined && this._faviconRegex.test(parsedUrl.pathname);
     }
 
+    /**
+     * Helper method to get the routes for a particular url.
+     * 
+     * @param parsedUrl The parsed url from the client.
+     * @param method The current method of the request.
+     * @param allRoutes All the routes that should be used to determine what routes need to be returned.
+     */
     private getRoutes<R extends IRoute>(parsedUrl: url.UrlWithParsedQuery, method: string, allRoutes: R[]): R[] {
         let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
         let possibleRoutes = allRoutes.filter(x => x.splitPath.length === splitPath.length || x.path === '*');
@@ -190,6 +284,14 @@ export class InternalServer {
     }
 
     //#region Processors
+    /**
+     * Helper method that will determine the controllers and injectors to call to gather the result to send to the client.
+     * 
+     * @param req The request from the http server.
+     * @param res The respone from the http server.
+     * @param form The form that was processed by formidable from the post object.
+     * @param body The body that was sent up by the client.
+     */
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse, form: IFormModel | null, body?: any) {
         let response: Result = new JsonResult();
         
@@ -272,6 +374,14 @@ export class InternalServer {
         return args;
     }
 
+    /**
+     * Helper method to process a specific route from the server.
+     * 
+     * @param route The route that should be processed.
+     * @param parsedUrl The parsed url from the client.
+     * @param form The form processed by formadable.
+     * @param body The body that came from the client.
+     */
     private processRoute(route: IInternalRoute, parsedUrl: url.UrlWithParsedQuery, form: IFormModel | null, body: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             if (form !== null) {
@@ -293,6 +403,14 @@ export class InternalServer {
         });
     }
 
+    /**
+     * Method is meant to handle injected routes and process them after the controllers.
+     * 
+     * @param injectedRoute The injected route that needs to be processed before the result is returned to the client.
+     * @param parsedUrl The parsed url from the client.
+     * @param body The body that was sent from the client.
+     * @param result The current result being processed.
+     */
     private processInjector(injectedRoute: IInternalInjectedRoute, parsedUrl: url.UrlWithParsedQuery, body: any, result: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let response = injectedRoute.injector[injectedRoute.key].call(injectedRoute.injector, result);
@@ -306,6 +424,11 @@ export class InternalServer {
         });
     }
 
+    /**
+     * Helper method that will process the form object of a post request.
+     * 
+     * @param req The request object coming from the http module.
+     */
     private processForm(req: http.IncomingMessage) {
         return new Promise<IFormModel>((resolve, reject) => {
             let form = new IncomingForm();
@@ -332,6 +455,12 @@ export class InternalServer {
         });
     }
 
+    /**
+     * Helper method to process arguments for controller/injector methods.
+     * 
+     * @param type The type of method for the argument.
+     * @param value The current value that needs to be passed to that argument.
+     */
     private processArgument(type: any, value: string) {
         switch (type) {
             case Number:
@@ -346,11 +475,18 @@ export class InternalServer {
     //#endregion
 
     //#region Responses
+    /**
+     * Helper method to deal with errors on the server and how to respond to them.
+     * 
+     * @param req The request object sent from the http module.
+     * @param res The response object sent from the http module.
+     */
     private async sendError(req: http.IncomingMessage, res: http.ServerResponse) {
         let response = new JsonResult();
         response.status = Status.InternalServerError;
         response.body = { message: 'Internal Server Error' };
         await response.processResponse(res);
     }
+    //#endregion
     //#endregion
 }

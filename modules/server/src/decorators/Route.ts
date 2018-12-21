@@ -1,7 +1,12 @@
 let rootRegex = /^\//;
 let fileRegex = /\((.*):\d+:\d+\)/;
 
-function Route(path?: string): any {
+/**
+ * Attribute for controllers to give the controller route information that will be used by the server.
+ * 
+ * @param path The controller path that needs to be used for all the http method attributes in this class.
+ */
+export function Route(path?: string): any {
     let previousFile: string;
     let err = new Error();
     if (err.stack !== undefined) {
@@ -42,5 +47,3 @@ function Route(path?: string): any {
         };
     };
 }
-
-export { Route };
