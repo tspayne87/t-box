@@ -14,6 +14,7 @@ import { IncomingForm } from 'formidable';
 import { IFormModel } from './IFormModel';
 import { UploadedFiles, UploadFile } from './UploadFile';
 import { Dependency } from '../Dependency';
+import { bodyMetadataKey } from '../decorators';
 
 /**
  * Internal server class that deals with the underlining http module to listen on a port for requests and process
@@ -338,7 +339,6 @@ export class InternalServer {
      */
     private processArguments(route: IInternalRoute, body: any, parsedUrl: url.UrlWithParsedQuery): any[] {
         if (route.params.length === 0) return []; // If no parameters were found on the route we do not need to process anything.
-        if (route.params.length === 1 && body) return [ body ]; // If only one property was found and a body exists we need to process only the body.
 
         // We need to iterate over the url and get the data elements from the url to be parsed properly.
         let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
@@ -352,8 +352,15 @@ export class InternalServer {
 
         // Create the argument array that will be used when parsing the route.
         let argTypes = Reflect.getMetadata('design:paramtypes', route.controller, route.key);
+        let bodyTypes = <number[]>Reflect.getMetadata(bodyMetadataKey, route.controller, route.key);
         let args: any[] = [];
         for (let i = 0; i < route.params.length; ++i) {
+            if (bodyTypes !== undefined && bodyTypes.indexOf(i) > -1) {
+                // We need to process the body attribute for the arguments.
+                args.push(this.processArgument(argTypes[i], body));
+                continue;
+            }
+
             let param = parsedUrl.query[route.params[i]];
             if (param !== undefined) {
                 if (Array.isArray(param)) {

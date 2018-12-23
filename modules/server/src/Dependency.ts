@@ -41,9 +41,9 @@ export class Dependency {
      * 
      * @param item The item that needs to be resolved and the instance created, with the arguments injected into it.
      */
-    public resolve(item: IDependency) {
-        let args = this.getDependencyInjections(item);
-        return new item(...args);
+    public resolve(dependency: IDependency) {
+        let args = this.getDependencyInjections(dependency);
+        return new dependency(...args);
     }
 
     /**

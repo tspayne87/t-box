@@ -1,4 +1,27 @@
-import { Controller, Route, Get, Post, Delete, Body } from '../../../src';
+# Controller
+The controller is where most of the processing for the server will happen, the is where you will define your business logic and where the bulk of your application will be.
+
+## Properties
+### _dirname: string
+The directory in which the server is running in.
+### _routes: IRoute[]
+The routes this controller is meant to handle.
+### _formFields: Fields | undefined
+The fields that have been processed by [formidable](https://github.com/felixge/node-formidable)
+### _formFiles: UploadedFiles | undefined
+The files that were processed by [formidable](https://github.com/felixge/node-formidable)
+
+## Methods
+### html(html)
+Method is meant to return an [html result](results.md)
+- html :: A html string that needs to be sent to the client.
+### asset(asset)
+Method is meant to return an asset from where the controller is located.
+- asset :: An asset that needs to be passed down to the client.
+
+## Example
+```typescript
+import { Controller, Route, Get, Post, Delete, Body } from '@t-box/server';
 
 interface ITodo {
     id: number;
@@ -20,16 +43,6 @@ export class TodoController extends Controller {
     public get(id: number) {
         let found = this._tasks.filter(x => x.id === id);
         return found.length > 0 ? found[0] : null;
-    }
-
-    @Post('{id}/[action]')
-    public done(id: number) {
-        let found = this._tasks.filter(x => x.id === id);
-        if (found.length > 0) {
-            found[0].done = true;
-            return found[0];
-        }
-        return null;
     }
 
     @Post()
@@ -56,3 +69,4 @@ export class TodoController extends Controller {
         return false;
     }
 }
+```

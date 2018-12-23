@@ -1,4 +1,4 @@
-import { Route, Get, Post, Delete, Controller, AssetResult } from '../../src';
+import { Route, Get, Post, Delete, Controller, AssetResult, Body } from '../../src';
 import * as path from 'path';
 
 @Route('user')
@@ -21,7 +21,7 @@ export class UserController extends Controller {
     }
 
     @Post('/test')
-    public testUser(user: any): any {
+    public testUser(@Body user: any): any {
         return user;
     }
 
@@ -49,7 +49,7 @@ export class UserController extends Controller {
     }
 
     @Post()
-    public saveUser(user: any): any {
+    public saveUser(@Body user: any): any {
         return user;
     }
 
