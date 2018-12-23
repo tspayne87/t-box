@@ -1,17 +1,23 @@
 {
   "name": "@t-box/server",
-  "version": "0.0.9",
-  "description": "",
+  "version": "0.1.2",
+  "description": "A simple NodeJs server that uses controllers for routes.",
   "main": "index.js",
   "types": "index.d.ts",
+  "keywords": ["server", "nodejs"],
   "scripts": {
     "test": "mocha -r ts-node/register tests/**/*.spec.ts",
     "check": "ts-node tests/test.ts",
     "example:todo": "cd examples/todo && node -r ts-node/register --inspect server.ts",
     "build": "gulp build"
   },
-  "author": "",
-  "license": "ISC",
+  "homepage": "https://terry-payne-web.herokuapp.com/t-box",
+  "author": "Terry Payne",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tspayne87/t-box/tree/master/modules/server"
+  },
+  "license": "MIT",
   "dependencies": {
     "formidable": "^1.2.1",
     "glob": "^7.1.3",

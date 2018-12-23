@@ -39,7 +39,7 @@ The following is a simple usage of creating a server that will be listening on l
         });
 ```
 ## API
-You can read further by using the documentation, it will go into further detail on what options you have when creating the server and using it. [Continue Reading](docs/README.md)
+You can read further by using the documentation, it will go into further detail on what options you have when creating the server and using it. [Continue Reading](https://github.com/tspayne87/t-box/blob/master/modules/server/docs/README.md)
 
 - Development can be discussed in [github issues](https://github.com/tspayne87/t-box/issues), be sure to attach the server label.
 
