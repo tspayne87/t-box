@@ -20,6 +20,11 @@ export class UserController extends Controller {
         return 'index.html';
     }
 
+    @Get('*')
+    public allUser() {
+        return 'all-user';
+    }
+
     @Post('/test')
     public testUser(@Body user: any): any {
         return user;
@@ -46,6 +51,11 @@ export class UserController extends Controller {
     @Get('{id}')
     public getUser(id: string): string {
         return id;
+    }
+
+    @Get('{id}/path')
+    public testPath(id: string): string {
+        return `${id}-path`;
     }
 
     @Post()

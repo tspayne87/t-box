@@ -7,7 +7,7 @@ import * as isPromise from 'is-promise';
 import { IController } from '../Controller';
 import { IInjector } from '../Injector';
 import { Method, Status } from '../enums';
-import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
+import { IInternalRoute, IInternalInjectedRoute, IRoute, IRouteTree } from '../interfaces';
 import { Result, JsonResult, AssetResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
 import { IncomingForm } from 'formidable';
@@ -36,15 +36,19 @@ export class InternalServer {
     /**
      * The routes that should be used be the server to determine which controller and method should be used.
      */
-    private _routes: IInternalRoute[];
+    private _routes: IRouteTree<IInternalRoute>;
     /**
      * The injected routes that should be called after the routes have finished their processing.
      */
-    private _injectedRoutes: IInternalInjectedRoute[];
+    private _injectedRoutes: IRouteTree<IInternalInjectedRoute>;
     /**
      * The parameter regex that should be used to pass arguments from the url into the methods on the controllers.
      */
     private _paramRegex: RegExp;
+    /**
+     * The parameter key that should be used to group wild cards in the 
+     */
+    private _paramKey: string;
     /**
      * The action regex that will replace a segment of the url with the name of the method it is attached from.
      */
@@ -78,11 +82,12 @@ export class InternalServer {
         this._dependency = dependency;
         this._server = http.createServer(this.requestListener.bind(this));
         this._paramRegex = /{(.*)}/;
+        this._paramKey = '___param_key___';
         this._actionRegex = /\[(.*)\]/;
         this._faviconRegex = /favicon\.icon$/;
-        this._injectedRoutes = [];
+        this._injectedRoutes = { children: {}, routes: [] };
         this._staticFolders = [];
-        this._routes = [];
+        this._routes = { children: {}, routes: [] };
         this._logger = logger ? logger : new ConsoleLogger();
         this.uploadDir = '';
     }
@@ -99,7 +104,7 @@ export class InternalServer {
             for (let j = 0; j < controller._routes.length; ++j) {
                 let route = this.copyRoute<IInternalRoute>(controller._routes[j]);
                 route.controller = controller;
-                this._routes.push(route);
+                this.pushRoute(route, this._routes);
             }
         }
     }
@@ -115,7 +120,7 @@ export class InternalServer {
             for (let j = 0; j < injector._routes.length; ++j) {
                 let route = this.copyRoute<IInternalInjectedRoute>(injector._routes[j]);
                 route.injector = injector;
-                this._injectedRoutes.push(route);
+                this.pushRoute(route, this._injectedRoutes);
             }
         }
     }
@@ -152,6 +157,23 @@ export class InternalServer {
     }
 
     //#region Private Methods.
+    /**
+     * Helper method to build out the tree structure for routes.
+     * 
+     * @param route The route that needs to be added to the tree structure.
+     * @param tree The current tree structure we need to add the route to.
+     */
+    private pushRoute<T extends IRoute>(route: T, tree: IRouteTree<T>) {
+        let add = tree;
+        for (let i = 0; i < route.splitPath.length; ++i) {
+            let key = route.splitPath[i];
+            if (this._paramRegex.test(key)) key = this._paramKey;
+            if (add.children[key] === undefined) add.children[key] = { children: {}, routes: [] };
+            add = add.children[key];
+        }
+        add.routes.push(route);
+    }
+
     /**
      * Method is meant to copy a route and process it for use by the server.
      * 
@@ -251,37 +273,56 @@ export class InternalServer {
      * 
      * @param parsedUrl The parsed url from the client.
      * @param method The current method of the request.
-     * @param allRoutes All the routes that should be used to determine what routes need to be returned.
+     * @param tree All the routes that should be used to determine what routes need to be returned.
      */
-    private getRoutes<R extends IRoute>(parsedUrl: url.UrlWithParsedQuery, method: string, allRoutes: R[]): R[] {
+    private getRoutes<T extends IRoute>(parsedUrl: url.UrlWithParsedQuery, method: string, tree: IRouteTree<T>): T[] {
         let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
-        let possibleRoutes = allRoutes.filter(x => x.splitPath.length === splitPath.length || x.path === '*');
+
+        let possibleRoutes: T[] = [];
+        if (splitPath.length > 0) {
+            let wildCards: T[] = [];
+            let leaf = tree;
+            let parameterLeaf: IRouteTree<T> | undefined;
+            for (let i = 0; i < splitPath.length; ++i) {
+                let key = splitPath[i];
+                let next = leaf.children[key];
+                if (next === undefined && parameterLeaf !== undefined) {
+                    if (parameterLeaf.children[key] !== undefined) {
+                        next = parameterLeaf.children[key];
+                    } else {
+                        leaf = { children: {}, routes: [] };
+                        break;
+                    }
+                }
+
+                parameterLeaf = leaf.children[this._paramKey];
+                if (next === undefined && parameterLeaf !== undefined) {
+                    next = parameterLeaf;
+                    parameterLeaf = undefined;
+                }
+                if (leaf.children['*'] !== undefined)
+                    wildCards = leaf.children['*'].routes.concat(wildCards);
+
+                if (next === undefined) {
+                    leaf = { children: {}, routes: [] };
+                    break;
+                }
+                leaf = next;
+            }
+            possibleRoutes = leaf.routes.concat(wildCards);
+        } else if (tree.children['*'] !== undefined) {
+            possibleRoutes = tree.children['*'].routes;
+        }
+
         switch (method) {
             case 'GET':
-                possibleRoutes = possibleRoutes.filter(x => x.method === Method.Get);
-                break;
+                return possibleRoutes.filter(x => x.method === Method.Get);
             case 'POST':
-                possibleRoutes = possibleRoutes.filter(x => x.method === Method.Post);
-                break;
+                return possibleRoutes.filter(x => x.method === Method.Post);
             case 'DELETE':
-                possibleRoutes = possibleRoutes.filter(x => x.method === Method.Delete);
-                break;
+                return possibleRoutes.filter(x => x.method === Method.Delete);
         }
-
-        let routes: R[] = [];
-        for (let i = 0; i < possibleRoutes.length; ++i) {
-            let includeRoute = true;
-            for (let j = 0; j < possibleRoutes[i].splitPath.length && includeRoute; ++j) {
-                if (possibleRoutes[i].splitPath[j] !== splitPath[j] && possibleRoutes[i].splitPath[j].match(this._paramRegex) === null)
-                    includeRoute = false;
-            }
-            if (includeRoute) routes.push(possibleRoutes[i]);
-        }
-
-        if (routes.length === 0 && possibleRoutes.findIndex(x => x.path === '*') > -1) {
-            routes = possibleRoutes.filter(x => x.path === '*');
-        }
-        return routes;
+        return possibleRoutes;
     }
 
     //#region Processors

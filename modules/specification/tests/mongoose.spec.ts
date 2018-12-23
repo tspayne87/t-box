@@ -1,8 +1,8 @@
 import { assert } from 'chai';
 import 'mocha';
 
-import { Specification } from '../src';
 import '../src/adaptors/mongoose/adaptor';
+import { Specification } from '../src';
 
 import { IPerson } from './interfaces';
 

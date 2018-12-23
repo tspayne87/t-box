@@ -54,6 +54,28 @@ describe('{Controller}:/user', function() {
             .catch((err) => done(err));
     });
 
+    it('{GET}:/user/{id}/path', (done) => {
+        http.Get(`http://localhost:${port}/user/index/path`)
+            .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'application/json');
+                assert.equal('index-path', data);
+                done();
+            })
+            .catch((err) => done(err));
+    });
+
+    it('{GET}:/user/*', (done) => {
+        http.Get(`http://localhost:${port}/user/${id}/abort`)
+            .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'application/json');
+                assert.equal('all-user', data);
+                done();
+            })
+            .catch((err) => done(err));
+    });
+
     it('{POST}:/user', (done) => {
         http.Post(`http://localhost:${port}/user`, { id })
             .then((data) => {
