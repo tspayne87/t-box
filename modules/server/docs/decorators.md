@@ -24,16 +24,16 @@ Example:
 ### InjectedRoute
 This is the route information for the injector or the base route for this controller.
 ```typescript
-import { Injector, Get, InjectedRoute } from '@t-box/server';
+    import { Injector, Get, InjectedRoute } from '@t-box/server';
 
-@InjectedRoute('example')
-export class ExampleInjection extends Injector {
+    @InjectedRoute('example')
+    export class ExampleInjection extends Injector {
 
-    @Get('hello-world') // This method can be accessed at localhost/example/hello-world
-    public helloWorld(result: string): string {
-        return `${result}-Injection`;
+        @Get('hello-world') // This method can be accessed at localhost/example/hello-world
+        public helloWorld(result: string): string {
+            return `${result}-Injection`;
+        }
     }
-}
 ```
 
 ## HTTP Methods
@@ -99,28 +99,28 @@ Example:
 Decorator to handle if a parameter needs to have the body pased up as the request.
 Example:
 ```typescript
-import { Controller,  Post, Body } from '@t-box/server';
+    import { Controller,  Post, Body } from '@t-box/server';
 
-interface ITodo {
-    id: number;
-    name: string;
-    done: boolean;
-}
+    interface ITodo {
+        id: number;
+        name: string;
+        done: boolean;
+    }
 
-@Route('todo')
-export class TodoController extends Controller {
-    @Post()
-    public save(id: number, @Body todo: ITodo) {
-        let found = this._tasks.filter(x => x.id === id);
-        if (found.length > 0) {
-            found[0].done = todo.done;
-            found[0].name = todo.name;
-            return found[0];
-        } else {
-            todo.id = ++this._id;
-            this._tasks.push(todo);
-            return todo;
+    @Route('todo')
+    export class TodoController extends Controller {
+        @Post()
+        public save(id: number, @Body todo: ITodo) {
+            let found = this._tasks.filter(x => x.id === id);
+            if (found.length > 0) {
+                found[0].done = todo.done;
+                found[0].name = todo.name;
+                return found[0];
+            } else {
+                todo.id = ++this._id;
+                this._tasks.push(todo);
+                return todo;
+            }
         }
     }
-}
 ```

@@ -4,7 +4,7 @@ import { InternalServer } from '../src/internal';
 import { Dependency } from '../src/Dependency';
 import { Http } from './utils';
 
-describe('{Controller}:/user', function() {
+describe('{Static}:/public', function() {
     let id = '4543-38483-29983-2093';
     let port = 8000;
 
@@ -12,8 +12,10 @@ describe('{Controller}:/user', function() {
     let server = new InternalServer(new Dependency(), __dirname);
     server.registerStaticLocations('public');
 
-    before(function () {
-        server.listen(port);
+    before(function (done) {
+        server.listen(port)
+            .then(() => done())
+            .catch(err => done(err));
     });
 
     it('{GET}:/public/test.css', (done) => {
@@ -76,7 +78,9 @@ describe('{Controller}:/user', function() {
             .catch((err) => done(err));
     });
 
-    after(function() {
-        server.close();
+    after(function(done) {
+        server.close()
+            .then(() => done())
+            .catch(err => done(err));
     });
 });

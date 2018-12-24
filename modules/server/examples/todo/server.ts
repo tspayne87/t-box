@@ -3,7 +3,7 @@ import { Server, Dependency } from '../../src';
 let server = new Server(new Dependency(), __dirname);
 async function boot() {
     await server.register('controllers');
-    server.start(8080);
+    await server.start(8080);
 }
 
 boot()
@@ -12,5 +12,7 @@ boot()
     })
     .catch(err => {
         console.error(err);
-        server.stop();
+        server.stop()
+            .then(() => process.exit())
+            .catch(() => process.exit(1));
     });

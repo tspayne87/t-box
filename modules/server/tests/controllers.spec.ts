@@ -17,8 +17,10 @@ describe('{Controller}:/user', function() {
 
     let fileContents = fs.readFileSync(path.join(__dirname, 'controllers', 'index.html')).toString();
 
-    before(function () {
-        server.start(port);
+    before(function (done) {
+        server.start(port)
+            .then(() => done())
+            .catch(err => done(err));
     });
 
     it('{GET}:/user', (done) => {
@@ -131,6 +133,17 @@ describe('{Controller}:/user', function() {
             .catch((err) => done(err));
     });
 
+    it('{POST}:/long-url', (done) => {
+        http.Get(`http://localhost:${port}/user/this/is/a/very/long/url/that/needs/to/be/tested/to/make/sure/it/is/working/properly`)
+            .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'application/json');
+                assert.deepEqual('very-long-url', data);
+                done();
+            })
+            .catch((err) => done(err));
+    });
+
     it('File Upload', (done) => {
         http.File(`http://localhost:${port}/user/upload`, __dirname + '/test-file.txt', 'test.txt')
             .then((data) => {
@@ -184,7 +197,9 @@ describe('{Controller}:/user', function() {
             .catch((err) => done(err));
     });
 
-    after(function() {
-        server.stop();
+    after(function(done) {
+        server.stop()
+            .then(() => done())
+            .catch(err => done(err));
     });
 });

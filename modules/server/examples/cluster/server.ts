@@ -11,15 +11,19 @@ if (Cluster.isMaster) {
     }
 } else {
     let server = new Server(new Dependency(), __dirname);
-
     async function boot() {
         await server.register('controllers');
-        server.start(port);
+        await server.start(8080);
     }
 
     boot()
+        .then(() => { 
+            console.log('Server started on localhost:8080');
+        })
         .catch(err => {
             console.error(err);
-            process.exit(1);
+            server.stop()
+                .then(() => process.exit())
+                .catch(() => process.exit(1));
         });
 }

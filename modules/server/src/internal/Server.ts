@@ -1,13 +1,12 @@
 import 'reflect-metadata';
 import * as http from 'http';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as url from 'url';
 import * as isPromise from 'is-promise';
 import { IController } from '../Controller';
 import { IInjector } from '../Injector';
-import { Method, Status } from '../enums';
-import { IInternalRoute, IInternalInjectedRoute, IRoute, IRouteTree } from '../interfaces';
+import { Status } from '../enums';
+import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
 import { Result, JsonResult, AssetResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
 import { IncomingForm } from 'formidable';
@@ -15,6 +14,7 @@ import { IFormModel } from './IFormModel';
 import { UploadedFiles, UploadFile } from './UploadFile';
 import { Dependency } from '../Dependency';
 import { bodyMetadataKey } from '../decorators';
+import { RouteContainer } from './RouteContainer';
 
 /**
  * Internal server class that deals with the underlining http module to listen on a port for requests and process
@@ -36,23 +36,11 @@ export class InternalServer {
     /**
      * The routes that should be used be the server to determine which controller and method should be used.
      */
-    private _routes: IRouteTree<IInternalRoute>;
+    private _routes: RouteContainer<IInternalRoute>;
     /**
      * The injected routes that should be called after the routes have finished their processing.
      */
-    private _injectedRoutes: IRouteTree<IInternalInjectedRoute>;
-    /**
-     * The parameter regex that should be used to pass arguments from the url into the methods on the controllers.
-     */
-    private _paramRegex: RegExp;
-    /**
-     * The parameter key that should be used to group wild cards in the 
-     */
-    private _paramKey: string;
-    /**
-     * The action regex that will replace a segment of the url with the name of the method it is attached from.
-     */
-    private _actionRegex: RegExp;
+    private _injectedRoutes: RouteContainer<IInternalInjectedRoute>;
     /**
      * The favicon regex to determine if the server should serve up the favicon instead of the routes.
      */
@@ -81,13 +69,10 @@ export class InternalServer {
         this._dir = dir || '';
         this._dependency = dependency;
         this._server = http.createServer(this.requestListener.bind(this));
-        this._paramRegex = /{(.*)}/;
-        this._paramKey = '___param_key___';
-        this._actionRegex = /\[(.*)\]/;
         this._faviconRegex = /favicon\.icon$/;
-        this._injectedRoutes = { children: {}, routes: [] };
+        this._injectedRoutes = new RouteContainer<IInternalInjectedRoute>();
+        this._routes = new RouteContainer<IInternalRoute>();
         this._staticFolders = [];
-        this._routes = { children: {}, routes: [] };
         this._logger = logger ? logger : new ConsoleLogger();
         this.uploadDir = '';
     }
@@ -102,9 +87,8 @@ export class InternalServer {
             let controller = this._dependency.resolve(controllers[i]);
             controller._dirname = this._dir;
             for (let j = 0; j < controller._routes.length; ++j) {
-                let route = this.copyRoute<IInternalRoute>(controller._routes[j]);
+                let route = this._routes.push(controller._routes[j]);
                 route.controller = controller;
-                this.pushRoute(route, this._routes);
             }
         }
     }
@@ -118,9 +102,8 @@ export class InternalServer {
         for (let i = 0; i < injectors.length; ++i) {
             let injector = this._dependency.resolve(injectors[i]);
             for (let j = 0; j < injector._routes.length; ++j) {
-                let route = this.copyRoute<IInternalInjectedRoute>(injector._routes[j]);
+                let route = this._injectedRoutes.push(injector._routes[j]);
                 route.injector = injector;
-                this.pushRoute(route, this._injectedRoutes);
             }
         }
     }
@@ -140,8 +123,13 @@ export class InternalServer {
      * @param args The arguments that need to be passed to the http server listen method.
      */
     public listen(...args: [any, (Function | undefined)?]) {
-        this._server.listen.apply(this._server, args);
-        this._logger.log('Server Started');
+        return new Promise<void>(resolve => {
+            this._server.once('listening', () => {
+                this._logger.log('Server Started');
+                resolve();
+            });
+            this._server.listen(...args);
+        });
     }
 
     /**
@@ -157,45 +145,6 @@ export class InternalServer {
     }
 
     //#region Private Methods.
-    /**
-     * Helper method to build out the tree structure for routes.
-     * 
-     * @param route The route that needs to be added to the tree structure.
-     * @param tree The current tree structure we need to add the route to.
-     */
-    private pushRoute<T extends IRoute>(route: T, tree: IRouteTree<T>) {
-        let add = tree;
-        for (let i = 0; i < route.splitPath.length; ++i) {
-            let key = route.splitPath[i];
-            if (this._paramRegex.test(key)) key = this._paramKey;
-            if (add.children[key] === undefined) add.children[key] = { children: {}, routes: [] };
-            add = add.children[key];
-        }
-        add.routes.push(route);
-    }
-
-    /**
-     * Method is meant to copy a route and process it for use by the server.
-     * 
-     * @param oldRoute The old route that is being copied.
-     */
-    private copyRoute<I extends IRoute>(oldRoute: IRoute): I {
-        let route = Object.assign<I, IRoute>(<I>{}, oldRoute);
-
-        // Override some of the actions to deal with different exceptions.
-        for (let i = 0; i < route.splitPath.length; ++i) {
-            let matches = route.splitPath[i].match(this._actionRegex);
-            if (matches !== null) {
-                switch (matches[1]) {
-                    case 'action':
-                        route.splitPath[i] = route.key;
-                        break;
-                }
-            }
-        }
-        return route;
-    }
-
     /**
      * Method is meant to be the callback for the http server when a request is sent in from the client.
      * 
@@ -268,63 +217,6 @@ export class InternalServer {
         return parsedUrl.pathname !== null && parsedUrl.pathname !== undefined && this._faviconRegex.test(parsedUrl.pathname);
     }
 
-    /**
-     * Helper method to get the routes for a particular url.
-     * 
-     * @param parsedUrl The parsed url from the client.
-     * @param method The current method of the request.
-     * @param tree All the routes that should be used to determine what routes need to be returned.
-     */
-    private getRoutes<T extends IRoute>(parsedUrl: url.UrlWithParsedQuery, method: string, tree: IRouteTree<T>): T[] {
-        let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
-
-        let possibleRoutes: T[] = [];
-        if (splitPath.length > 0) {
-            let wildCards: T[] = [];
-            let leaf = tree;
-            let parameterLeaf: IRouteTree<T> | undefined;
-            for (let i = 0; i < splitPath.length; ++i) {
-                let key = splitPath[i];
-                let next = leaf.children[key];
-                if (next === undefined && parameterLeaf !== undefined) {
-                    if (parameterLeaf.children[key] !== undefined) {
-                        next = parameterLeaf.children[key];
-                    } else {
-                        leaf = { children: {}, routes: [] };
-                        break;
-                    }
-                }
-
-                parameterLeaf = leaf.children[this._paramKey];
-                if (next === undefined && parameterLeaf !== undefined) {
-                    next = parameterLeaf;
-                    parameterLeaf = undefined;
-                }
-                if (leaf.children['*'] !== undefined)
-                    wildCards = leaf.children['*'].routes.concat(wildCards);
-
-                if (next === undefined) {
-                    leaf = { children: {}, routes: [] };
-                    break;
-                }
-                leaf = next;
-            }
-            possibleRoutes = leaf.routes.concat(wildCards);
-        } else if (tree.children['*'] !== undefined) {
-            possibleRoutes = tree.children['*'].routes;
-        }
-
-        switch (method) {
-            case 'GET':
-                return possibleRoutes.filter(x => x.method === Method.Get);
-            case 'POST':
-                return possibleRoutes.filter(x => x.method === Method.Post);
-            case 'DELETE':
-                return possibleRoutes.filter(x => x.method === Method.Delete);
-        }
-        return possibleRoutes;
-    }
-
     //#region Processors
     /**
      * Helper method that will determine the controllers and injectors to call to gather the result to send to the client.
@@ -344,9 +236,12 @@ export class InternalServer {
             let parsedUrl = url.parse((req.url || '').substr(1), true);
             if (this.isStaticResource(parsedUrl)) {
                 response = this.getStaticResult(parsedUrl);
+            } else if (this.isFavicon(parsedUrl)) {
+                let fullPath = path.join(this._dir, 'favicon.ico');
+                response = new AssetResult(fullPath);
             } else {
-                let routes = this.getRoutes(parsedUrl, req.method || '', this._routes);
-                let injectors = this.getRoutes(parsedUrl, req.method || '', this._injectedRoutes);
+                let routes = this._routes.find(parsedUrl, req.method || '');
+                let injectors = this._injectedRoutes.find(parsedUrl, req.method || '');
                 if (routes.length > 0) {
                     let result = await this.processRoute(routes[0], parsedUrl, form, body);
                     for (let i = 0; i < injectors.length; ++i) {
@@ -374,6 +269,7 @@ export class InternalServer {
 
     /**
      * Method is meant to process argument so they can be passed into the route properly.
+     * 
      * @param route The current route that needs its arguments parsed.
      * @param body The current body of the request that was sent.
      * @param parsedUrl The parsed url with the query parameters parsed.
@@ -385,7 +281,7 @@ export class InternalServer {
         let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
         let fromRoute: { [key: string]: string } = {};
         for (let i = 0; i < splitPath.length; ++i) {
-            let matches = route.splitPath[i].match(this._paramRegex);
+            let matches = route.splitPath[i].match(this._routes.paramRegex);
             if (matches !== null) {
                 fromRoute[matches[1]] = splitPath[i];
             }

@@ -62,3 +62,4 @@ typings/
 
 dist
 dist_test
+basic.nodeServer.js

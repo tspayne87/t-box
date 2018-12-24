@@ -25,6 +25,11 @@ export class UserController extends Controller {
         return 'all-user';
     }
 
+    @Get('this/is/a/very/long/url/that/needs/to/be/tested/to/make/sure/it/is/working/properly')
+    public veryLongUrl() {
+        return 'very-long-url';
+    }
+
     @Post('/test')
     public testUser(@Body user: any): any {
         return user;

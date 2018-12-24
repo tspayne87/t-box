@@ -15,8 +15,10 @@ describe('{Injection}:/user', function() {
     server.addControllers(UserController);
     server.addInjectors(UserInjection);
 
-    before(function () {
-        server.listen(port);
+    before(function (done) {
+        server.listen(port)
+            .then(() => done())
+            .catch(err => done(err));
     });
 
     it('{GET}:/user/{id}', (done) => {
@@ -52,7 +54,9 @@ describe('{Injection}:/user', function() {
             .catch((err) => done(err));
     });
 
-    after(function() {
-        server.close();
+    after(function(done) {
+        server.close()
+            .then(() => done())
+            .catch(err => done(err));
     });
 });

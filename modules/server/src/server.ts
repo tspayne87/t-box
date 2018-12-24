@@ -139,13 +139,13 @@ export class Server {
      * @param args Arguments that can be passed into the 'http' modules listen method.
      */
     public start(...args: [any, (Function | undefined)?]) {
-        this._server.listen.apply(this._server, args);
+        return this._server.listen(...args);
     }
 
     /**
      * Method is meant to end the internal server.
      */
     public stop() {
-        this._server.close();
+        return this._server.close();
     }
 }
