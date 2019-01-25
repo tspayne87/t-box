@@ -21,21 +21,23 @@ The T-box server is a node server to handle website requests, its main purpose i
 The following is a simple usage of creating a server that will be listening on localhost:8080.
 
 ```typescript
-    import { Server, Dependency } from '@t-box/server';
+    import { Application, Dependency } from '@t-box/server';
 
-    let server = new Server(new Dependency(), __dirname);
+    let app = new Application(new Dependency(), __dirname);
     async function boot() {
-        await server.register('controllers');
-        server.start(8080);
+        await app.register('controllers');
+        app.listen(8080);
     }
 
     boot()
         .then(() => { 
-            console.log('Server started on localhost:8080');
+            console.log('Server started on http://localhost:8080');
         })
         .catch(err => {
             console.error(err);
-            server.stop();
+            app.close(() => {
+                process.exit();
+            });
         });
 ```
 ## API
