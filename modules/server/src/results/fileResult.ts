@@ -1,5 +1,6 @@
 import { Result } from './result';
 import { Http2ServerResponse } from 'http2';
+import { ServerResponse } from 'http';
 import * as fs from 'fs';
 
 /**
@@ -38,7 +39,7 @@ export class FileResult extends Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public async processResponse(res: Http2ServerResponse) {
+    public async processResponse(res: Http2ServerResponse | ServerResponse) {
         this.headers['Content-Type'] = this._contentType;
         this.headers['Content-Disposition'] = `attachment; filename=${this._fileName}`;
         this.headers['Content-Length'] = (<Buffer>this.body).length.toString();
