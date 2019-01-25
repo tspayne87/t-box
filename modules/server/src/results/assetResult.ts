@@ -1,5 +1,5 @@
 import { Result } from './result';
-import { ServerResponse } from 'http';
+import { Http2ServerResponse } from 'http2';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as mmm from 'mmmagic';
@@ -48,7 +48,7 @@ export class AssetResult extends Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public async processResponse(res: ServerResponse) {
+    public async processResponse(res: Http2ServerResponse) {
         if (this.route !== null) {
             let dirname = path.dirname(this.route.location);
             if (await this.fileExists(dirname)) {

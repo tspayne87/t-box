@@ -1,4 +1,4 @@
-import { Server, Dependency } from '../../src';
+import { Application, Dependency } from '../../src';
 import * as Cluster from 'cluster';
 import * as OS from 'os';
 
@@ -10,20 +10,20 @@ if (Cluster.isMaster) {
         Cluster.fork();
     }
 } else {
-    let server = new Server(new Dependency(), __dirname);
+    let app = new Application(new Dependency(), __dirname);
     async function boot() {
-        await server.register('controllers');
-        await server.start(8080);
+        await app.register('controllers');
+        app.listen(8080);
     }
 
     boot()
         .then(() => { 
-            console.log('Server started on localhost:8080');
+            console.log('Server started on http://localhost:8080');
         })
         .catch(err => {
             console.error(err);
-            server.stop()
-                .then(() => process.exit())
-                .catch(() => process.exit(1));
+            app.close(() => {
+                process.exit();
+            });
         });
 }

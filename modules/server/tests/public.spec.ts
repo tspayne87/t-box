@@ -1,7 +1,6 @@
 import { assert } from 'chai';
 import 'mocha';
-import { InternalServer } from '../src/internal';
-import { Dependency } from '../src/Dependency';
+import { Application, Dependency } from '../src';
 import { Http } from './utils';
 
 describe('{Static}:/public', function() {
@@ -9,13 +8,12 @@ describe('{Static}:/public', function() {
     let port = 8000;
 
     let http = new Http();
-    let server = new InternalServer(new Dependency(), __dirname);
-    server.registerStaticLocations('public');
+    let app = new Application(new Dependency(), __dirname);
+    app.registerStaticFolders('public');
 
     before(function (done) {
-        server.listen(port)
-            .then(() => done())
-            .catch(err => done(err));
+        app.listen(port);
+        done();
     });
 
     it('{GET}:/public/test.css', (done) => {
@@ -79,8 +77,6 @@ describe('{Static}:/public', function() {
     });
 
     after(function(done) {
-        server.close()
-            .then(() => done())
-            .catch(err => done(err));
+        app.close(done);
     });
 });

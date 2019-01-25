@@ -1,16 +1,25 @@
 {
   "name": "@t-box/specification",
-  "version": "0.0.1",
-  "description": "",
+  "version": "0.0.3",
+  "description": "A query library that takes conditional statements and converts them to workable queries in ORM's.",
   "main": "index.js",
   "types": "index.d.ts",
+  "keywords": [
+    "db",
+    "nodejs"
+  ],
   "scripts": {
     "test": "mocha -r ts-node/register tests/**/*.spec.ts",
     "check": "ts-node tests/test.ts",
     "build": "gulp build"
   },
-  "author": "",
-  "license": "ISC",
+  "homepage": "https://terry-payne-web.herokuapp.com/t-box",
+  "author": "Terry Payne",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tspayne87/t-box/tree/master/modules/specification"
+  },
+  "license": "MIT",
   "dependencies": {},
   "devDependencies": {
     "@types/chai": "^4.1.7",

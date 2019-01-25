@@ -3,6 +3,8 @@ import { Dependency } from './Dependency';
 import { ILogger, ConsoleLogger } from './loggers';
 import { IController } from './Controller';
 import { IInjector } from './Injector';
+import * as http2 from 'http2';
+import * as http from 'http';
 import * as path from 'path';
 import * as glob from 'glob';
 
@@ -11,7 +13,7 @@ import * as glob from 'glob';
  * based on the routes and attributes of the controllers.  The main purpose in this is so that
  * webpack and normal registry of modules that house the controllers can be found by this class.
  */
-export class Server {
+export class Application {
     /**
      * The directory that this server is currently running in and where it should look for the controllers.
      */
@@ -20,6 +22,10 @@ export class Server {
      * The internal server that hosts and serves up the pages.
      */
     private _server: InternalServer;
+    /**
+     * The internal webserver.
+     */
+    private _webServer!: http.Server;
     /**
      * The logger to use when sending messages, will default to a console logger.
      */
@@ -134,18 +140,35 @@ export class Server {
     }
 
     /**
-     * Method is meant to start the internal server.
+     * Method is meant to bind to the server.
      * 
-     * @param args Arguments that can be passed into the 'http' modules listen method.
+     * @param server The server that needs to be bound to.
      */
-    public start(...args: [any, (Function | undefined)?]) {
-        return this._server.listen(...args);
+    public bind(server: http.Server | http2.Http2Server) {
+        server.on('request', this._server.requestListener.bind(this._server));
     }
 
     /**
-     * Method is meant to end the internal server.
+     * Method is meant to be a short cut to a basic listening http server.
      */
-    public stop() {
-        return this._server.close();
+    public listen(port?: number, hostname?: string, backlog?: number, listeningListener?: Function);
+    public listen(port?: number, hostname?: string, listeningListener?: Function);
+    public listen(port?: number, backlog?: number, listeningListener?: Function);
+    public listen(port?: number, listeningListener?: Function);
+    public listen(path: string, backlog?: number, listeningListener?: Function);
+    public listen(path: string, listeningListener?: Function);
+    public listen(handle: any, backlog?: number, listeningListener?: Function);
+    public listen(handle: any, listeningListener?: Function);
+    public listen(...args: any[]) {
+        this._webServer = http.createServer();
+        this.bind(this._webServer);
+        this._webServer.listen(...args);
+    }
+
+    /**
+     * Method is meant to close the current internal web http server.
+     */
+    public close(callback?: Function) {
+        this._webServer.close(callback);
     }
 }

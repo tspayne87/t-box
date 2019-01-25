@@ -1,4 +1,4 @@
-# Server
+# Application
 The server does most of the work in this package, it handles all the requests sent to it by the client and will process the request and call the correct controllers and injectors with the proper arguments.
 
 ## Properties
@@ -28,29 +28,31 @@ Method will register all the controllers that should be used by the server.
 Method will register all the injectors that should be used by the server.
 - context :: The directory or a webpack require context where the injectors are located for processing.
 - dirname(optional) :: The director where the controllers are found in, this is only used if a string is passed in as the context.
-### start(args)
+### bind(server)
+Method is meant to attach the internal server handler to a node server.
+### listen(args)
 Method will start the server and pass in the arguments explained at [NodeJs Documentation](https://nodejs.org/api/http.html#http_server_listen)
-### stop()
+### close(callback)
 Method will stop the internal server.
 
 ## Example
 ```typescript
-    import { Server, Dependency } from '@t-box/server';
+    import { Application, Dependency } from '@t-box/server';
 
-    let server = new Server(new Dependency(), __dirname);
+    let app = new Application(new Dependency(), __dirname);
     async function boot() {
-        await server.register('controllers');
-        await server.start(8080);
+        await app.register('controllers');
+        app.listen(8080);
     }
 
     boot()
         .then(() => { 
-            console.log('Server started on localhost:8080');
+            console.log('Server started on http://localhost:8080');
         })
         .catch(err => {
             console.error(err);
-            server.stop()
-                .then(() => process.exit())
-                .catch(() => process.exit(1));
+            app.close(() => {
+                process.exit();
+            });
         });
 ```

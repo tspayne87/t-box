@@ -1,5 +1,5 @@
 import { Status } from '../enums';
-import { ServerResponse } from 'http';
+import { Http2ServerResponse } from 'http2';
 import { IRoute } from '../interfaces';
 
 /**
@@ -28,7 +28,7 @@ export class Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public async processResponse(res: ServerResponse) {
+    public async processResponse(res: Http2ServerResponse) {
         this.headers['Content-Type'] = this.headers['Content-Type'] || 'application/actet-stream';
 
         res.writeHead(this.status, this.headers);

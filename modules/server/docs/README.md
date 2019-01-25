@@ -2,7 +2,7 @@
 Welcome to the T-box server, a simple solution to creating NodeJs servers.
 
 ## Getting Started
-- [Server](server.md)
+- [Application](application.md)
 - [Dependency](dependency.md)
 - [Controller](controller.md)
 - [Injector](injector.md)

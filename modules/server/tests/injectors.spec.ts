@@ -4,6 +4,7 @@ import { InternalServer } from '../src/internal';
 import { Dependency } from '../src/Dependency';
 import { UserController } from './controllers/user.controller';
 import { UserInjection } from './injectors/user.injector';
+import * as httpModule from 'http';
 import { Http } from './utils';
 
 describe('{Injection}:/user', function() {
@@ -15,10 +16,12 @@ describe('{Injection}:/user', function() {
     server.addControllers(UserController);
     server.addInjectors(UserInjection);
 
+    let webServer = httpModule.createServer();
+    webServer.on('request', server.requestListener.bind(server));
+
     before(function (done) {
-        server.listen(port)
-            .then(() => done())
-            .catch(err => done(err));
+        webServer.listen(port);
+        done();
     });
 
     it('{GET}:/user/{id}', (done) => {
@@ -55,8 +58,6 @@ describe('{Injection}:/user', function() {
     });
 
     after(function(done) {
-        server.close()
-            .then(() => done())
-            .catch(err => done(err));
+        webServer.close(done);
     });
 });

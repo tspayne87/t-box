@@ -1,5 +1,5 @@
 import { Result } from './result';
-import { ServerResponse } from 'http';
+import { Http2ServerResponse } from 'http2';
 
 /**
  * A result that handles an html string.
@@ -20,7 +20,7 @@ export class HtmlResult extends Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public async processResponse(res: ServerResponse) {
+    public async processResponse(res: Http2ServerResponse) {
         this.headers['Content-Type'] = 'text/html';
         super.processResponse(res);
     }

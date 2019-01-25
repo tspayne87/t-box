@@ -20,7 +20,7 @@ function compile(cb) {
 };
 
 function copy(cb) {
-    gulp.src('package.json')
+    gulp.src(['package.json', 'README.md', 'LICENSE'])
         .pipe(gulp.dest('dist'));
     cb();
 };

@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import * as http2 from 'http2';
 import * as http from 'http';
 import * as path from 'path';
 import * as url from 'url';
@@ -25,10 +26,6 @@ export class InternalServer {
      * The dependency injection service that will build out controllers and add in their dependencies.
      */
     private _dependency: Dependency;
-    /**
-     * The underlining http server the listen on.
-     */
-    private _server: http.Server;
     /**
      * The locations of the static folders based on their routes and folder locations.
      */
@@ -68,7 +65,6 @@ export class InternalServer {
     constructor(dependency: Dependency, dir?: string, logger?: ILogger) {
         this._dir = dir || '';
         this._dependency = dependency;
-        this._server = http.createServer(this.requestListener.bind(this));
         this._faviconRegex = /favicon\.icon$/;
         this._injectedRoutes = new RouteContainer<IInternalInjectedRoute>();
         this._routes = new RouteContainer<IInternalRoute>();
@@ -117,33 +113,6 @@ export class InternalServer {
         this._staticFolders = this._staticFolders.concat(folders.map(x => x.split('/')));
     }
 
-    /**
-     * Method is meant to start listening for the internal http server.
-     * 
-     * @param args The arguments that need to be passed to the http server listen method.
-     */
-    public listen(...args: [any, (Function | undefined)?]) {
-        return new Promise<void>(resolve => {
-            this._server.once('listening', () => {
-                this._logger.log('Server Started');
-                resolve();
-            });
-            this._server.listen(...args);
-        });
-    }
-
-    /**
-     * Method is meant to close the internal http server.
-     */
-    public close(): Promise<void> {
-        return new Promise<void>(resolve => {
-            this._server.close(() => {
-                this._logger.log('Server Stopped');
-                resolve();
-            });
-        });
-    }
-
     //#region Private Methods.
     /**
      * Method is meant to be the callback for the http server when a request is sent in from the client.
@@ -151,7 +120,7 @@ export class InternalServer {
      * @param req The http request object.
      * @param res The http response object.
      */
-    private requestListener(req: http.IncomingMessage, res: http.ServerResponse) {
+    public requestListener(req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) {
         if (req.method !== undefined && req.method.toLowerCase() === 'post') {
             this.processForm(req)
                 .then(model => {
@@ -226,9 +195,8 @@ export class InternalServer {
      * @param form The form that was processed by formidable from the post object.
      * @param body The body that was sent up by the client.
      */
-    private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse, form: IFormModel | null, body?: any) {
+    private async handleRequest(req: http2.Http2ServerRequest, res: http2.Http2ServerResponse, form: IFormModel | null, body?: any) {
         let response: Result = new JsonResult();
-        
         try {
             if (body && req.headers['content-type'] === 'application/json') body = JSON.parse(body);
             if (form !== null) body = form.fields;
@@ -373,7 +341,7 @@ export class InternalServer {
      * 
      * @param req The request object coming from the http module.
      */
-    private processForm(req: http.IncomingMessage) {
+    private processForm(req: any) {
         return new Promise<IFormModel>((resolve, reject) => {
             let form = new IncomingForm();
             let result: any = {};
@@ -425,7 +393,7 @@ export class InternalServer {
      * @param req The request object sent from the http module.
      * @param res The response object sent from the http module.
      */
-    private async sendError(req: http.IncomingMessage, res: http.ServerResponse) {
+    private async sendError(req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) {
         let response = new JsonResult();
         response.status = Status.InternalServerError;
         response.body = { message: 'Internal Server Error' };
