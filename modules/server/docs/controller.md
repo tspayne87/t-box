@@ -10,6 +10,8 @@ The routes this controller is meant to handle.
 The fields that have been processed by [formidable](https://github.com/felixge/node-formidable)
 ### _formFiles: UploadedFiles | undefined
 The files that were processed by [formidable](https://github.com/felixge/node-formidable)
+### _req: any
+The request object from the basic node server, is used to communicate with middleware
 
 ## Methods
 ### html(html)

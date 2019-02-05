@@ -1,3 +1,8 @@
+0.2.3 / 2019-02-04
+===================
+
+  * Added in Request object to controllers so they can communicate with middleware
+
 0.2.2 / 2019-02-04
 ===================
 

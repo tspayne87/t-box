@@ -31,6 +31,10 @@ export class Controller {
      * The underlining form files that the server generates if a post is sent to it.
      */
     public _formFiles?: UploadedFiles;
+    /**
+     * The request object created by the internal server.
+     */
+    public _req!: any;
 
     /**
      * Basic constructor to set an array to the routes list.

@@ -259,6 +259,7 @@ export class InternalServer {
                 let routes = this._routes.find(parsedUrl, req.method || '');
                 let injectors = this._injectedRoutes.find(parsedUrl, req.method || '');
                 if (routes.length > 0) {
+                    routes[0].controller._req = req;
                     let result = await this.processRoute(routes[0], parsedUrl, form, body);
                     for (let i = 0; i < injectors.length; ++i) {
                         result = await this.processInjector(injectors[i], parsedUrl, body, result);
