@@ -153,9 +153,9 @@ export class Application {
      * 
      * @param callback The callback that should be ran for this middleware.
      */
-    public middleware(callback: (request: http.IncomingMessage, response: http.ServerResponse) => void);
-    public middleware(callback: (req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) => void);
-    public middleware(callback: (req: any, res: any) => void) {
+    public middleware(callback: (request: http.IncomingMessage, response: http.ServerResponse, next: (err?: any) => void) => void);
+    public middleware(callback: (req: http2.Http2ServerRequest, res: http2.Http2ServerResponse, next: (err?: any) => void) => void);
+    public middleware(callback: (req: any, res: any, next: (err?: any) => void) => void) {
         this._server.middleware(callback);
     }
 

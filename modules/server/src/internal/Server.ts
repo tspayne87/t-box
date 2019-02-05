@@ -53,7 +53,7 @@ export class InternalServer {
     /**
      * The list of middleware callbacks that need to be included before the found injected routes and route.
      */
-    private _middlewareCallbacks: ((req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse) => void)[];
+    private _middlewareCallbacks: ((req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse, next: (err?: any) => void) => void)[];
     /**
      * The upload directory that should be used for formidable.
      */
@@ -123,15 +123,38 @@ export class InternalServer {
      * 
      * @param callback The callback that should be called before the injected routes and route are found.
      */
-    public middleware(callback: (request: http.IncomingMessage, response: http.ServerResponse) => void);
-    public middleware(callback: (req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) => void);
-    public middleware(callback: (req: any, res: any) => void) {
+    public middleware(callback: (request: http.IncomingMessage, response: http.ServerResponse, next: (err?: any) => void) => void);
+    public middleware(callback: (req: http2.Http2ServerRequest, res: http2.Http2ServerResponse, next: (err?: any) => void) => void);
+    public middleware(callback: (req: any, res: any, next: (err?: any) => void) => void) {
         if (this._middlewareCallbacks.indexOf(callback) === -1) {
             this._middlewareCallbacks.push(callback);
         }
     }
 
     //#region Private Methods.
+    /**
+     * Method is meant to handle the middleware list.
+     * 
+     * @param req The http request object.
+     * @param res The http response object.
+     */
+    private handleMiddleware(req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse) {
+        return new Promise((resolve, reject) => {
+            let self = this;
+            let nextMiddleware = function(index: number, err?: any) {
+                if (err !== undefined) return reject(err);
+
+                if (index > self._middlewareCallbacks.length) {
+                    resolve();
+                } else {
+                    self._middlewareCallbacks[index - 1](req, res, nextMiddleware.bind(null, ++index));
+                }
+            };
+
+            nextMiddleware(1);
+        });
+    }
+
     /**
      * Method is meant to be the callback for the http server when a request is sent in from the client.
      * 
@@ -140,34 +163,38 @@ export class InternalServer {
      */
     public requestListener(req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse) {
         // Call the middleware callbacks that have been bound by the application.
-        for (let i = 0; i < this._middlewareCallbacks.length; ++i) this._middlewareCallbacks[i](req, res);
-
-        if (req.method !== undefined && req.method.toLowerCase() === 'post') {
-            this.processForm(req)
-                .then(model => {
-                    this.handleRequest(req, res, model)
-                        .catch(err => {
+        this.handleMiddleware(req, res)
+            .then(() => {
+                if (req.method !== undefined && req.method.toLowerCase() === 'post') {
+                    this.processForm(req)
+                        .then(model => {
+                            this.handleRequest(req, res, model)
+                                .catch(err => {
+                                    this._logger.error(err);
+                                    this.sendError(req, res);
+                                });
+                        }).catch(err => {
                             this._logger.error(err);
                             this.sendError(req, res);
                         });
-                }).catch(err => {
-                    this._logger.error(err);
-                    this.sendError(req, res);
-                });
-        } else {
-            let buffer: any[] = [];
-            req.on('data', (chunk) => {
-                buffer.push(chunk);
-            });
-            req.on('end', async () => {
-                let body: any = Buffer.concat(buffer).toString();
-                this.handleRequest(req, res, null, body)
-                    .catch(err => {
-                        this._logger.error(err);
-                        this.sendError(req, res);
+                } else {
+                    let buffer: any[] = [];
+                    req.on('data', (chunk) => {
+                        buffer.push(chunk);
                     });
+                    req.on('end', async () => {
+                        let body: any = Buffer.concat(buffer).toString();
+                        this.handleRequest(req, res, null, body)
+                            .catch(err => {
+                                this._logger.error(err);
+                                this.sendError(req, res);
+                            });
+                    });
+                }
+            }).catch((err) => {
+                this._logger.error(err);
+                this.sendError(req, res);
             });
-        }
     }
 
     /**
