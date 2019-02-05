@@ -1,6 +1,6 @@
 {
   "name": "@t-box/server",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "A simple NodeJs server that uses controllers for routes.",
   "main": "index.js",
   "types": "index.d.ts",

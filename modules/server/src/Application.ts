@@ -116,6 +116,7 @@ export class Application {
                             let obj = require(files[i]);
                             let keys = Object.keys(obj);
                             for (let j = 0; j < keys.length; ++j) {
+                                obj[keys[j]].filePath = files[i];
                                 items.push(obj[keys[j]]);
                             }
                         }

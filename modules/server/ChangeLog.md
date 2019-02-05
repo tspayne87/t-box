@@ -1,3 +1,8 @@
+0.2.4 / 2019-02-04
+===================
+
+  * Updating the location path structure instead of using the error stack
+
 0.2.3 / 2019-02-04
 ===================
 
