@@ -28,6 +28,9 @@ Method will register all the controllers that should be used by the server.
 Method will register all the injectors that should be used by the server.
 - context :: The directory or a webpack require context where the injectors are located for processing.
 - dirname(optional) :: The director where the controllers are found in, this is only used if a string is passed in as the context.
+### middleware(callback)
+Method is meant to register middleware components that should be called before the route information.
+- callback :: A callback that should be called before the injected route and route is called.
 ### bind(server)
 Method is meant to attach the internal server handler to a node server.
 ### listen(args)

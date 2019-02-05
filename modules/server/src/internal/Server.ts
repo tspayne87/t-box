@@ -51,6 +51,10 @@ export class InternalServer {
      */
     private _dir: string;
     /**
+     * The list of middleware callbacks that need to be included before the found injected routes and route.
+     */
+    private _middlewareCallbacks: ((req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse) => void)[];
+    /**
      * The upload directory that should be used for formidable.
      */
     public uploadDir: string;
@@ -64,6 +68,7 @@ export class InternalServer {
      */
     constructor(dependency: Dependency, dir?: string, logger?: ILogger) {
         this._dir = dir || '';
+        this._middlewareCallbacks = [];
         this._dependency = dependency;
         this._faviconRegex = /favicon\.icon$/;
         this._injectedRoutes = new RouteContainer<IInternalInjectedRoute>();
@@ -113,6 +118,19 @@ export class InternalServer {
         this._staticFolders = this._staticFolders.concat(folders.map(x => x.split('/')));
     }
 
+    /**
+     * Registers middleware for processing.
+     * 
+     * @param callback The callback that should be called before the injected routes and route are found.
+     */
+    public middleware(callback: (request: http.IncomingMessage, response: http.ServerResponse) => void);
+    public middleware(callback: (req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) => void);
+    public middleware(callback: (req: any, res: any) => void) {
+        if (this._middlewareCallbacks.indexOf(callback) === -1) {
+            this._middlewareCallbacks.push(callback);
+        }
+    }
+
     //#region Private Methods.
     /**
      * Method is meant to be the callback for the http server when a request is sent in from the client.
@@ -120,7 +138,10 @@ export class InternalServer {
      * @param req The http request object.
      * @param res The http response object.
      */
-    public requestListener(req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) {
+    public requestListener(req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse) {
+        // Call the middleware callbacks that have been bound by the application.
+        for (let i = 0; i < this._middlewareCallbacks.length; ++i) this._middlewareCallbacks[i](req, res);
+
         if (req.method !== undefined && req.method.toLowerCase() === 'post') {
             this.processForm(req)
                 .then(model => {
@@ -195,7 +216,7 @@ export class InternalServer {
      * @param form The form that was processed by formidable from the post object.
      * @param body The body that was sent up by the client.
      */
-    private async handleRequest(req: http2.Http2ServerRequest, res: http2.Http2ServerResponse, form: IFormModel | null, body?: any) {
+    private async handleRequest(req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse, form: IFormModel | null, body?: any) {
         let response: Result = new JsonResult();
         try {
             if (body && req.headers['content-type'] === 'application/json') body = JSON.parse(body);
@@ -393,7 +414,7 @@ export class InternalServer {
      * @param req The request object sent from the http module.
      * @param res The response object sent from the http module.
      */
-    private async sendError(req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) {
+    private async sendError(req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse) {
         let response = new JsonResult();
         response.status = Status.InternalServerError;
         response.body = { message: 'Internal Server Error' };

@@ -149,6 +149,17 @@ export class Application {
     }
 
     /**
+     * Method is meant to define middleware callbacks to the internal server.
+     * 
+     * @param callback The callback that should be ran for this middleware.
+     */
+    public middleware(callback: (request: http.IncomingMessage, response: http.ServerResponse) => void);
+    public middleware(callback: (req: http2.Http2ServerRequest, res: http2.Http2ServerResponse) => void);
+    public middleware(callback: (req: any, res: any) => void) {
+        this._server.middleware(callback);
+    }
+
+    /**
      * Method is meant to be a short cut to a basic listening http server.
      */
     public listen(port?: number, hostname?: string, backlog?: number, listeningListener?: Function);
