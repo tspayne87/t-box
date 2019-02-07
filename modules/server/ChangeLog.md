@@ -1,3 +1,8 @@
+0.2.5 / 2019-02-06
+===================
+
+  * Fixing an issue where the asset result would error out and not find anything
+
 0.2.4 / 2019-02-04
 ===================
 

@@ -33,7 +33,7 @@ export class Result {
         this.headers['Content-Type'] = this.headers['Content-Type'] || 'application/actet-stream';
 
         res.writeHead(this.status, this.headers);
-        (<any>res).write(this.body);
+        if (this.body !== null && this.body !== undefined) (<any>res).write(this.body);
         res.end();
     }
 }

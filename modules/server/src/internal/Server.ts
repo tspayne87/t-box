@@ -280,7 +280,12 @@ export class InternalServer {
             response.status = Status.InternalServerError;
             response.body = { message: 'Internal Server Error' };
         } finally {
-            await response.processResponse(res);
+            try {
+                await response.processResponse(res);
+            } catch (err) {
+                this._logger.error(err);
+                this.sendError(req, res);
+            }
         }
     }
 
