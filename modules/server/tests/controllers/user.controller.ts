@@ -1,11 +1,11 @@
-import { Route, Get, Post, Delete, Controller, AssetResult, Body } from '../../src';
+import { Route, Get, Post, Delete, Controller, AssetResult, Body, FileContainer } from '../../src';
 import * as path from 'path';
 
 @Route('user')
 export class UserController extends Controller {
     public data: string;
 
-    constructor() {
+    constructor(private _fileContainer: FileContainer) {
         super();
         this.data = 'Searching...';
     }
@@ -75,8 +75,8 @@ export class UserController extends Controller {
 
     @Post('upload')
     public async upload() {
-        if (this._formFiles !== undefined) {
-            let file = this._formFiles['fileToUpload'];
+        if (this._fileContainer.files !== undefined) {
+            let file = this._fileContainer.files['fileToUpload'];
             let newLocation = path.join(this._dirname, 'uploads', 'user_upload' + path.extname(file.name).toLowerCase());
             return await file.copy(newLocation);
         }

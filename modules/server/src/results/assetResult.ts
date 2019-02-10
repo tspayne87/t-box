@@ -3,7 +3,6 @@ import { Http2ServerResponse } from 'http2';
 import { ServerResponse } from 'http';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as mmm from 'mmmagic';
 
 /**
  * A result that handles an asset string.
@@ -29,6 +28,18 @@ export class AssetResult extends Result {
      * WOFF2 Regular expression for file types.
      */
     private _woff2: RegExp;
+    /**
+     * PNG Regular expression for file types.
+     */
+    private _png: RegExp;
+    /**
+     * SVG Regular expression for file types.
+     */
+    private _svg: RegExp;
+    /**
+     * HTML Regular expression for file types.
+     */
+    private _html: RegExp;
 
     /**
      * Constructor for the asset result.
@@ -42,6 +53,9 @@ export class AssetResult extends Result {
         this._cssRegex = /\.css$/;
         this._woff = /\.woff$/;
         this._woff2 = /\.woff2$/;
+        this._png = /\.png$/;
+        this._svg = /\.svg$/;
+        this._html = /\.html$/;
     }
 
     /**
@@ -53,12 +67,12 @@ export class AssetResult extends Result {
         if (this.route !== null) {
             let dirname = path.dirname(this.route.location);
             if (await this.fileExists(dirname)) {
-                this.headers['Content-Type'] = await this.getContentType(dirname);
+                this.headers['Content-Type'] = this.getContentType(dirname);
                 this.body = await this.readFile(dirname);
             }
         } else {
             if (await this.fileExists()) {
-                this.headers['Content-Type'] = await this.getContentType();
+                this.headers['Content-Type'] = this.getContentType();
                 this.body = await this.readFile();
             }
         }
@@ -99,24 +113,24 @@ export class AssetResult extends Result {
      * 
      * @param dirname The directory that needs to be searched in.
      */
-    private getContentType(dirname?: string): Promise<string> {
-        let magic = new mmm.Magic(mmm.MAGIC_MIME_TYPE);
-        return new Promise<string>((resolve, reject) => {
-            let filePath = dirname === undefined ? this._asset : path.join(dirname, this._asset);
-            if (this._jsRegex.test(filePath)) {
-                resolve('application/javascript');
-            } else if (this._cssRegex.test(filePath)) {
-                resolve('text/css');
-            } else if (this._woff2.test(filePath)) {
-                resolve('font/woff2');
-            } else if (this._woff.test(filePath)) {
-                resolve('font/woff');
-            } else {
-                magic.detectFile(filePath, (err, result) => {
-                    if (err) return reject(err);
-                    resolve(result);
-                });
-            }
-        });
+    private getContentType(dirname?: string): string {
+        let filePath = dirname === undefined ? this._asset : path.join(dirname, this._asset);
+        if (this._jsRegex.test(filePath)) {
+            return 'application/javascript';
+        } else if (this._cssRegex.test(filePath)) {
+            return 'text/css';
+        } else if (this._woff2.test(filePath)) {
+            return 'font/woff2';
+        } else if (this._woff.test(filePath)) {
+            return 'font/woff';
+        } else if (this._html.test(filePath)) {
+            return 'text/html';
+        } else if (this._png.test(filePath)) {
+            return 'image/png';
+        } else if (this._svg.test(filePath)) {
+            return 'image/svg+xml';
+        } else {
+            return 'application/octet-stream';
+        }
     }
 }

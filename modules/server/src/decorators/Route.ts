@@ -11,8 +11,11 @@ export function Route(path?: string): any {
         let ctor = class Router extends target {
             constructor(...args: any[]) {
                 super(...args);
-                
+            }
+
+            public static generateRoutes() {
                 // Add in the routes to the class
+                let routes: any[] = [];
                 if (target.__routes__ !== undefined) {
                     for (let i = 0; i < target.__routes__.length; ++i) {
                         let route = Object.assign({}, target.__routes__[i]);
@@ -28,9 +31,10 @@ export function Route(path?: string): any {
                         }
                         route.splitPath = route.path.split('/');
                         route.location = ctor.filePath;
-                        this._routes.push(route);
+                        routes.push(route);
                     }
                 }
+                return routes;
             }
         };
         return ctor;

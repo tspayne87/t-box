@@ -1,4 +1,4 @@
-import { IRoute } from './interfaces';
+import { IRoute, IInternalInjectedRoute } from './interfaces';
 
 /**
  * Helper interface that is used internaly so that typescript builds properly.
@@ -6,6 +6,7 @@ import { IRoute } from './interfaces';
 export interface IInjector {
     new (...args: any[]): Injector;
     __routes__?: IRoute[];
+    generateRoutes(): IInternalInjectedRoute[];
 }
 
 /**

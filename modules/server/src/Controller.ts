@@ -1,7 +1,5 @@
-import { IRoute } from './interfaces';
+import { IRoute, IInternalRoute } from './interfaces';
 import { HtmlResult, AssetResult } from './results';
-import { Fields } from 'formidable';
-import { UploadedFiles } from './internal';
 
 /**
  * Helper interface that is used internaly so that typescript builds properly.
@@ -9,6 +7,7 @@ import { UploadedFiles } from './internal';
 export interface IController {
     new (...args: any[]): Controller;
     __routes__?: IRoute[];
+    generateRoutes(): IInternalRoute[];
 }
 
 /**
@@ -19,29 +18,6 @@ export class Controller {
      * The directory that the server is currently running in.
      */
     public _dirname!: string;
-    /**
-     * Routes that this controller needs to handle.
-     */
-    public _routes: IRoute[] = [];
-    /**
-     * The underlining form fields that the server generates if a post is sent to it.
-     */
-    public _formFields?: Fields;
-    /**
-     * The underlining form files that the server generates if a post is sent to it.
-     */
-    public _formFiles?: UploadedFiles;
-    /**
-     * The request object created by the internal server.
-     */
-    public _req!: any;
-
-    /**
-     * Basic constructor to set an array to the routes list.
-     */
-    constructor() {
-        this._routes = [];
-    }
 
     /**
      * Method will send an html string down to the client.

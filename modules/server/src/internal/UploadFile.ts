@@ -2,10 +2,14 @@ import { File } from 'formidable';
 import * as fs from 'fs';
 
 /**
- * Interface to handle the names of the uploaded files.
+ * Container class for files from formidable
  */
-export interface UploadedFiles {
-    [key: string]: UploadFile;
+export class FileContainer {
+    public files: { [key: string]: UploadFile };
+
+    public constructor(files: { [key: string]: UploadFile }) {
+        this.files = files;
+    }
 }
 
 /**

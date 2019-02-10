@@ -1,4 +1,5 @@
-import { Application, Dependency } from '../../src';
+import { Application } from '../../src';
+import { ServiceHandler } from './services/ServiceHandler';
 import * as http2 from 'http2';
 import * as fs from 'fs';
 
@@ -7,10 +8,10 @@ let server = http2.createSecureServer({
     cert: fs.readFileSync('../../certs/localhost-cert.pem')
 });
 
-let app = new Application(new Dependency(), __dirname);
+let app = new Application(__dirname, new ServiceHandler());
 async function boot() {
     await app.register('controllers');
-    app.bind(server);
+    app.bootstrap(server);
     server.listen(8080);
 }
 

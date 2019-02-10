@@ -1,8 +1,6 @@
 import { assert } from 'chai';
 import 'mocha';
 import { Application } from '../src';
-import { Dependency } from '../src/Dependency';
-import { UserController } from './controllers/user.controller';
 import { Http } from './utils';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -12,7 +10,7 @@ describe('{Controller}:/user', function() {
     let port = 8000;
 
     let http = new Http();
-    let app = new Application(new Dependency(), __dirname);
+    let app = new Application(__dirname);
     app.register('controllers');
 
     let fileContents = fs.readFileSync(path.join(__dirname, 'controllers', 'index.html')).toString();

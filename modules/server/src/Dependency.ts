@@ -13,9 +13,17 @@ interface IDependency {
  */
 export class Dependency {
     /**
-     * The injectable objects the we are storing as singletons
+     * The injectable objects the we are storing as singletons.
      */
     private _injectables: any[] = [];
+    /**
+     * The list of dependencies that should be created when a scope is created.
+     */
+    private _scopedDependencies: IDependency[] = [];
+
+    public constructor(...injectables) {
+        this._injectables = injectables;
+    }
 
     /**
      * Method is meant to add instances of the object instead of the class type.
@@ -34,6 +42,28 @@ export class Dependency {
      */
     public addDependency(dependency: IDependency) {
         this._injectables.push(this.resolve(dependency));
+    }
+
+    /**
+     * Method is meant to include dependencies that should be used during a scope.
+     * 
+     * @param dependency The dependency that we need to create when a scope is started.
+     */
+    public addScoped(dependency: IDependency) {
+        this._scopedDependencies.push(dependency);
+    }
+
+    /**
+     * Method is meant to create a dependency set for scoped requests.
+     * 
+     * @param injectables The injectables that should be added to the scope as defaults.
+     */
+    public createScope(...injectables: any[]): Dependency {
+        let scope = new Dependency(...[ ...this._injectables, ...injectables ]);
+        for (let i = 0; i < this._scopedDependencies.length; ++i) {
+            scope.addDependency(this._scopedDependencies[i]);
+        }
+        return scope;
     }
 
     /**

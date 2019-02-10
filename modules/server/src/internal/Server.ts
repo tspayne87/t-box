@@ -4,7 +4,7 @@ import * as http from 'http';
 import * as path from 'path';
 import * as url from 'url';
 import * as isPromise from 'is-promise';
-import { IController } from '../Controller';
+import { IController, Controller } from '../Controller';
 import { IInjector } from '../Injector';
 import { Status } from '../enums';
 import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
@@ -12,10 +12,12 @@ import { Result, JsonResult, AssetResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
 import { IncomingForm } from 'formidable';
 import { IFormModel } from './IFormModel';
-import { UploadedFiles, UploadFile } from './UploadFile';
+import { FileContainer, UploadFile } from './UploadFile';
 import { Dependency } from '../Dependency';
 import { bodyMetadataKey } from '../decorators';
 import { RouteContainer } from './RouteContainer';
+import { ServerRequestWrapper } from '../ServerRequestWrapper';
+import { ServerResponseWrapper } from '../ServerResponseWrapper';
 
 /**
  * Internal server class that deals with the underlining http module to listen on a port for requests and process
@@ -85,11 +87,10 @@ export class InternalServer {
      */
     public addControllers(...controllers: IController[]) {
         for (let i = 0; i < controllers.length; ++i) {
-            let controller = this._dependency.resolve(controllers[i]);
-            controller._dirname = this._dir;
-            for (let j = 0; j < controller._routes.length; ++j) {
-                let route = this._routes.push(controller._routes[j]);
-                route.controller = controller;
+            let routes = controllers[i].generateRoutes();
+            for (let j = 0; j < routes.length; ++j) {
+                let route = this._routes.push(routes[j]);
+                route.controller = controllers[i];
             }
         }
     }
@@ -101,10 +102,10 @@ export class InternalServer {
      */
     public addInjectors(...injectors: IInjector[]) {
         for (let i = 0; i < injectors.length; ++i) {
-            let injector = this._dependency.resolve(injectors[i]);
-            for (let j = 0; j < injector._routes.length; ++j) {
-                let route = this._injectedRoutes.push(injector._routes[j]);
-                route.injector = injector;
+            let routes = injectors[i].generateRoutes();
+            for (let j = 0; j < routes.length; ++j) {
+                let route = this._injectedRoutes.push(routes[j]);
+                route.injector = injectors[i];
             }
         }
     }
@@ -165,32 +166,18 @@ export class InternalServer {
         // Call the middleware callbacks that have been bound by the application.
         this.handleMiddleware(req, res)
             .then(() => {
-                if (req.method !== undefined && req.method.toLowerCase() === 'post') {
-                    this.processForm(req)
-                        .then(model => {
-                            this.handleRequest(req, res, model)
-                                .catch(err => {
-                                    this._logger.error(err);
-                                    this.sendError(req, res);
-                                });
-                        }).catch(err => {
-                            this._logger.error(err);
-                            this.sendError(req, res);
-                        });
-                } else {
-                    let buffer: any[] = [];
-                    req.on('data', (chunk) => {
-                        buffer.push(chunk);
-                    });
-                    req.on('end', async () => {
-                        let body: any = Buffer.concat(buffer).toString();
-                        this.handleRequest(req, res, null, body)
+                this.processRequest(req)
+                    .then(result => {
+                        let dependency = this._dependency.createScope(new ServerRequestWrapper(req), new ServerResponseWrapper(res), result.files);
+                        this.handleRequest(req, res, dependency, result.body)
                             .catch(err => {
                                 this._logger.error(err);
                                 this.sendError(req, res);
                             });
+                    }).catch((err) => {
+                        this._logger.error(err);
+                        this.sendError(req, res);
                     });
-                }
             }).catch((err) => {
                 this._logger.error(err);
                 this.sendError(req, res);
@@ -243,12 +230,9 @@ export class InternalServer {
      * @param form The form that was processed by formidable from the post object.
      * @param body The body that was sent up by the client.
      */
-    private async handleRequest(req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse, form: IFormModel | null, body?: any) {
+    private async handleRequest(req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse, dependency: Dependency, body?: any) {
         let response: Result = new JsonResult();
         try {
-            if (body && req.headers['content-type'] === 'application/json') body = JSON.parse(body);
-            if (form !== null) body = form.fields;
-
             let parsedUrl = url.parse((req.url || '').substr(1), true);
             if (this.isStaticResource(parsedUrl)) {
                 response = this.getStaticResult(parsedUrl);
@@ -259,10 +243,9 @@ export class InternalServer {
                 let routes = this._routes.find(parsedUrl, req.method || '');
                 let injectors = this._injectedRoutes.find(parsedUrl, req.method || '');
                 if (routes.length > 0) {
-                    routes[0].controller._req = req;
-                    let result = await this.processRoute(routes[0], parsedUrl, form, body);
+                    let result = await this.processRoute(routes[0], parsedUrl, dependency, body);
                     for (let i = 0; i < injectors.length; ++i) {
-                        result = await this.processInjector(injectors[i], parsedUrl, body, result);
+                        result = await this.processInjector(injectors[i], parsedUrl, dependency, body, result);
                     }
 
                     if (result instanceof Result) {
@@ -296,7 +279,7 @@ export class InternalServer {
      * @param body The current body of the request that was sent.
      * @param parsedUrl The parsed url with the query parameters parsed.
      */
-    private processArguments(route: IInternalRoute, body: any, parsedUrl: url.UrlWithParsedQuery): any[] {
+    private processArguments(route: IInternalRoute, body: any, parsedUrl: url.UrlWithParsedQuery, controller: Controller): any[] {
         if (route.params.length === 0) return []; // If no parameters were found on the route we do not need to process anything.
 
         // We need to iterate over the url and get the data elements from the url to be parsed properly.
@@ -310,8 +293,8 @@ export class InternalServer {
         }
 
         // Create the argument array that will be used when parsing the route.
-        let argTypes = Reflect.getMetadata('design:paramtypes', route.controller, route.key);
-        let bodyTypes = <number[]>Reflect.getMetadata(bodyMetadataKey, route.controller, route.key);
+        let argTypes = Reflect.getMetadata('design:paramtypes', controller, route.key);
+        let bodyTypes = <number[]>Reflect.getMetadata(bodyMetadataKey, controller, route.key);
         let args: any[] = [];
         for (let i = 0; i < route.params.length; ++i) {
             if (bodyTypes !== undefined && bodyTypes.indexOf(i) > -1) {
@@ -348,17 +331,12 @@ export class InternalServer {
      * @param form The form processed by formadable.
      * @param body The body that came from the client.
      */
-    private processRoute(route: IInternalRoute, parsedUrl: url.UrlWithParsedQuery, form: IFormModel | null, body: any): Promise<any> {
+    private processRoute(route: IInternalRoute, parsedUrl: url.UrlWithParsedQuery, dependency: Dependency, body: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            if (form !== null) {
-                route.controller._formFields = form.fields;
-                route.controller._formFiles = form.files;
-            }
-            let response = route.controller[route.key].apply(route.controller, this.processArguments(route, body, parsedUrl));
-            
-            // Reset the form data for the next request
-            route.controller._formFields = undefined;
-            route.controller._formFiles = undefined;
+            let controller = dependency.resolve(route.controller);
+            controller._dirname = this._dir;
+
+            let response = controller[route.key].apply(controller, this.processArguments(route, body, parsedUrl, controller));
             if (isPromise(response)) {
                 response
                     .then(x => resolve(x))
@@ -377,9 +355,10 @@ export class InternalServer {
      * @param body The body that was sent from the client.
      * @param result The current result being processed.
      */
-    private processInjector(injectedRoute: IInternalInjectedRoute, parsedUrl: url.UrlWithParsedQuery, body: any, result: any): Promise<any> {
+    private processInjector(injectedRoute: IInternalInjectedRoute, parsedUrl: url.UrlWithParsedQuery, dependency: Dependency, body: any, result: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            let response = injectedRoute.injector[injectedRoute.key].call(injectedRoute.injector, result);
+            let injector = dependency.resolve(injectedRoute.injector);
+            let response = injector[injectedRoute.key].call(injector, result);
             if (isPromise(response)) {
                 response
                     .then(result => resolve(result))
@@ -395,7 +374,7 @@ export class InternalServer {
      * 
      * @param req The request object coming from the http module.
      */
-    private processForm(req: any) {
+    private processRequest(req: any) {
         return new Promise<IFormModel>((resolve, reject) => {
             let form = new IncomingForm();
             let result: any = {};
@@ -404,16 +383,16 @@ export class InternalServer {
             }
             form.parse(req, (err, fields, files) => {
                 if (err) return reject(err);
-                result = { fields, files };
+                result = { body: fields, files };
             });
             form.on('end', () => {
                 if (result.files !== undefined) {
                     let keys = Object.keys(result.files);
-                    let uploadedFiles: UploadedFiles = {};
+                    let uploadedFiles: { [key: string]: UploadFile } = {};
                     for (let i = 0; i < keys.length; ++i) {
                         uploadedFiles[keys[i]] = new UploadFile(result.files[keys[i]]);
                     }
-                    result.files = uploadedFiles;
+                    result.files = new FileContainer(uploadedFiles);
                 }
 
                 resolve(result);

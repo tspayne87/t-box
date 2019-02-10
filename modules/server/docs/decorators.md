@@ -1,6 +1,48 @@
 # Decorators
 The decorators are meant to add in routes and give control with the body of the request.  This is the heart in how the controllers work in this system.
 
+## Injectables
+Injectables are classes that can be injected into the controllers for another source, these can be scoped per request or a global singleton for the server.
+
+Example:
+```typescript
+    import { Injectable } from '@t-box/server';
+
+    export interface ITodo {
+        id: number;
+        name: string;
+        done: boolean;
+    }
+
+    @Injectable
+    export class TodoService {
+        private _id: number = 0;
+
+        public todos: ITodo[] = [];
+
+        public constructor() {
+            for (let i = 0; i < 5; ++i) {
+                this.add({ id: -1, name: 'TODO: ' + i, done: false });
+            }
+        }
+
+        public add(todo: ITodo) {
+            todo.id = ++this._id;
+            this.todos.push(todo);
+            return todo;
+        }
+
+        public remove(id: number) {
+            let index = this.todos.findIndex(x => x.id === id);
+            if (index > -1) {
+                this.todos.splice(index, 1);
+                return true;
+            }
+            return false;
+        }
+    }
+```
+
 ## Routers
 The routes are method to act as a bucket for a particular route and all the methods in that class that are bound with an HTTP method should be prepended with that route.
 

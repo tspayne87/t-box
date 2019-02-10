@@ -13,8 +13,8 @@ describe('{Injection}:/user', function() {
 
     let http = new Http();
     let server = new InternalServer(new Dependency());
-    server.addControllers(UserController);
-    server.addInjectors(UserInjection);
+    server.addControllers(<any>UserController);
+    server.addInjectors(<any>UserInjection);
 
     let webServer = httpModule.createServer();
     webServer.on('request', server.requestListener.bind(server));

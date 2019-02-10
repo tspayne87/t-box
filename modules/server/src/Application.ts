@@ -3,6 +3,7 @@ import { Dependency } from './Dependency';
 import { ILogger, ConsoleLogger } from './loggers';
 import { IController } from './Controller';
 import { IInjector } from './Injector';
+import { IServiceHandler } from './interfaces';
 import * as http2 from 'http2';
 import * as http from 'http';
 import * as path from 'path';
@@ -31,6 +32,18 @@ export class Application {
      */
     private _logger: ILogger;
     /**
+     * The dependency set that should be used when creating routes and injectors.
+     */
+    private _dependency: Dependency;
+    /**
+     * The service handler object to add in services into the dependency object.
+     */
+    private _serviceHandler: IServiceHandler | undefined;
+    /**
+     * Determines if this application has already been bootstrapped.
+     */
+    private _bootStrapped: boolean;
+    /**
      * This is a wrapper for the internal upload directory, this will be used instead of the default.
      */
     public get uploadDir() { return this._server.uploadDir; }
@@ -39,16 +52,19 @@ export class Application {
     /**
      * The main server contructor to enable the configuration of modules into the server.
      * 
-     * @param dependency The dependency cache that we should use for the controllers.
      * @param dir The directory that this server should be running in.
+     * @param serviceHandler The service handler object to add in dependencies on bootstrap.
      * @param logger The logger that should be used will default to a console logger.
      * @param controllerSuffix The controller suffix that should be used if not using the webpack require api.
      * @param injectorSuffix The injector suffix that should be used if not using the webpack require api.
      */
-    constructor(dependency: Dependency, dir?: string, logger?: ILogger, public controllerSuffix: string = 'controller', public injectorSuffix: string = 'injector') {
+    constructor(dir?: string, serviceHandler?: IServiceHandler, logger?: ILogger, public controllerSuffix: string = 'controller', public injectorSuffix: string = 'injector') {
+        this._bootStrapped = false;
         this._dir = dir || '';
         this._logger = logger ? logger : new ConsoleLogger();
-        this._server = new InternalServer(dependency, this._dir, this._logger);
+        this._dependency = new Dependency();
+        this._serviceHandler = serviceHandler;
+        this._server = new InternalServer(this._dependency, this._dir, this._logger);
     }
 
     /**
@@ -145,8 +161,12 @@ export class Application {
      * 
      * @param server The server that needs to be bound to.
      */
-    public bind(server: http.Server | http2.Http2Server) {
+    public bootstrap(server: http.Server | http2.Http2Server) {
         server.on('request', this._server.requestListener.bind(this._server));
+        if (!this._bootStrapped && this._serviceHandler !== undefined) {
+            this._serviceHandler.addServices(this._dependency);
+        }
+        this._bootStrapped = true;
     }
 
     /**
@@ -173,7 +193,7 @@ export class Application {
     public listen(handle: any, listeningListener?: Function);
     public listen(...args: any[]) {
         this._webServer = http.createServer();
-        this.bind(this._webServer);
+        this.bootstrap(this._webServer);
         this._webServer.listen(...args);
     }
 

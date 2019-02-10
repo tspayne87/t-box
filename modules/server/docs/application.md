@@ -6,10 +6,10 @@ The server does most of the work in this package, it handles all the requests se
 The upload director that should be used instead of tmp
 
 ## Methods
-### constructor(dependency, dir, logger, controllerSuffix, injectorSuffix)
+### constructor(dir, serviceHandler, logger, controllerSuffix, injectorSuffix)
 Constructor that will build out the server.
-- [dependency](dependency.md) :: A repository of objects that should be used when creating controllers and injectors.
 - dir(optional) :: The directory the server should be running in.
+- serviceHandler(optional) :: The service handler that should add in injectable services to the dependency object.
 - logger(optional) :: The logger the server should use to print event information to.
 - controllerSuffix(optional) :: The suffix of the file that should be appended to find controllers on register. Default: 'controller'
 - injectorSuffix(optional) :: The suffix of the file that should be appended to find injectors on register. Default: 'injector'
@@ -31,7 +31,7 @@ Method will register all the injectors that should be used by the server.
 ### middleware(callback)
 Method is meant to register middleware components that should be called before the route information.
 - callback :: A callback that should be called before the injected route and route is called.
-### bind(server)
+### bootstrap(server)
 Method is meant to attach the internal server handler to a node server.
 ### listen(args)
 Method will start the server and pass in the arguments explained at [NodeJs Documentation](https://nodejs.org/api/http.html#http_server_listen)
@@ -40,9 +40,9 @@ Method will stop the internal server.
 
 ## Example
 ```typescript
-    import { Application, Dependency } from '@t-box/server';
+    import { Application } from '@t-box/server';
 
-    let app = new Application(new Dependency(), __dirname);
+    let app = new Application(__dirname);
     async function boot() {
         await app.register('controllers');
         app.listen(8080);

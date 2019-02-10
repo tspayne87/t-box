@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import 'mocha';
-import { Application, Dependency } from '../src';
+import { Application } from '../src';
 import { Http } from './utils';
 
 describe('{Static}:/public', function() {
@@ -8,7 +8,7 @@ describe('{Static}:/public', function() {
     let port = 8000;
 
     let http = new Http();
-    let app = new Application(new Dependency(), __dirname);
+    let app = new Application(__dirname);
     app.registerStaticFolders('public');
 
     before(function (done) {

@@ -11,6 +11,12 @@ Method is meant to add a newable object and use the dependancy injection to buil
 ### resolve(dependency)
 Method is meant to resolve the newable dependency and create an object based on the injectable objects.
 - dependency :: A newable object that needs to be created.
+### addScoped(dependency)
+Method is meant to add in scoped dependencies that will not be created until a scope is generated.
+- dependency :: A newable object that that be created in a scope.
+### createScope(...injectables)
+Method will generate a scope based on the current injectables and the scoped dependencies found, the scoped dependencies are generated in or of added.
+- injectables ::  A list of injectables that also need to be added to the injectable list.
 
 ## Usage
 ```typescript
