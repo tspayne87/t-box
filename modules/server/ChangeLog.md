@@ -1,3 +1,13 @@
+0.3.1 / 2019-02-10
+===================
+
+  * Updating process arguments to new up the type instead of just calling the function
+
+0.3.1 / 2019-02-10
+===================
+
+  * Updating README
+
 0.3.0 / 2019-02-10
 ===================
 

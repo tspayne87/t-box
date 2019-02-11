@@ -119,7 +119,7 @@ describe('{Controller}:/user', function() {
             .catch((err) => done(err));
     });
 
-    it('{POST}:/index', (done) => {
+    it('{Get}:/index', (done) => {
         http.Get(`http://localhost:${port}/index`)
             .then((data) => {
                 assert.equal(http.status, 200);
@@ -130,7 +130,24 @@ describe('{Controller}:/user', function() {
             .catch((err) => done(err));
     });
 
-    it('{POST}:/long-url', (done) => {
+    it('{Get}:/test/args', (done) => {
+        http.Get(`http://localhost:${port}/test/args/hello?testBoolean=true&testNumber=999&testString=world&testDate=02-12-2010&testMixed=123-0459-3021`)
+            .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'application/json');
+
+                assert.equal(data.id, 'hello');
+                assert.equal(data.testBoolean, true);
+                assert.equal(data.testNumber, 999);
+                assert.equal(data.testString, 'world');
+                assert.equal(data.testDate, '2010-02-12T07:00:00.000Z');
+                assert.equal(data.testMixed, '123-0459-3021');
+                done();
+            })
+            .catch((err) => done(err));
+    });
+
+    it('{Get}:/long-url', (done) => {
         http.Get(`http://localhost:${port}/user/this/is/a/very/long/url/that/needs/to/be/tested/to/make/sure/it/is/working/properly`)
             .then((data) => {
                 assert.equal(http.status, 200);

@@ -25,6 +25,11 @@ export class UserController extends Controller {
         return 'all-user';
     }
 
+    @Get('/test/args/{id}')
+    public testArgs(id: string, testBoolean?: boolean, testNumber?: number, testString?: string, testDate?: Date, testMixed?: boolean | number | string) {
+        return { id, testBoolean, testNumber, testString, testDate, testMixed };
+    }
+
     @Get('this/is/a/very/long/url/that/needs/to/be/tested/to/make/sure/it/is/working/properly')
     public veryLongUrl() {
         return 'very-long-url';

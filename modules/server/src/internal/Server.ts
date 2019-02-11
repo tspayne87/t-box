@@ -415,7 +415,7 @@ export class InternalServer {
             case Boolean:
                 return value === '1' || value === 'true';
         }
-        return type(value);
+        return new type(value);
     }
     //#endregion
 
