@@ -74,8 +74,9 @@ todo.controller.ts
 server.ts
 ```typescript
     import { Application } from '@t-box/server';
+    import { ServiceHandler } from './services/ServiceHandler';
 
-    let app = new Application(__dirname);
+    let app = new Application(__dirname, new ServiceHandler());
     async function boot() {
         await app.register('controllers');
         app.listen(8080);
