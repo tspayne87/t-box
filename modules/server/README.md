@@ -20,10 +20,62 @@ The T-box server is a node server to handle website requests, its main purpose i
 ## Usage
 The following is a simple usage of creating a server that will be listening on localhost:8080.
 
+todo.controller.ts
 ```typescript
-    import { Application, Dependency } from '@t-box/server';
+    import { Controller, Route, Get, Post, Delete, Body } from '@t-box/server';
+    import { TodoService, ITodo } from '../services/TodoService';
 
-    let app = new Application(new Dependency(), __dirname);
+    @Route('todo')
+    export class TodoController extends Controller {
+        public constructor(private _service: TodoService) {
+            super();
+        }
+
+        @Get()
+        public search(term: string) {
+            return this._service.todos.filter(x => term === undefined || term.length === 0 || x.name.startsWith(term));
+        }
+
+        @Get('{id}')
+        public get(id: number) {
+            let found = this._service.todos.filter(x => x.id === id);
+            return found.length > 0 ? found[0] : null;
+        }
+
+        @Post('{id}/[action]')
+        public done(id: number) {
+            let found = this._service.todos.filter(x => x.id === id);
+            if (found.length > 0) {
+                found[0].done = true;
+                return found[0];
+            }
+            return null;
+        }
+
+        @Post()
+        public save(id: number, @Body todo: ITodo) {
+            let found = this._service.todos.filter(x => x.id === id);
+            if (found.length > 0) {
+                found[0].done = todo.done;
+                found[0].name = todo.name;
+                return found[0];
+            } else {
+                return this._service.add(todo);
+            }
+        }
+
+        @Delete('{id}')
+        public remove(id: number) {
+            return this._service.remove(id);
+        }
+    }
+```
+
+server.ts
+```typescript
+    import { Application } from '@t-box/server';
+
+    let app = new Application(__dirname);
     async function boot() {
         await app.register('controllers');
         app.listen(8080);
