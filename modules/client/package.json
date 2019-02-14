@@ -1,6 +1,6 @@
 {
   "name": "@t-box/client",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -25,7 +25,8 @@
     "mocha": "^5.2.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
-    "typescript": "^3.2.1"
+    "typescript": "^3.2.1",
+    "vue-class-component": "^6.3.2"
   },
   "dependencies": {
     "vue": "^2.5.17",

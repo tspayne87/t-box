@@ -1,4 +1,4 @@
-import Vue, { VueConstructor } from 'vue';
+import Vue, { VueConstructor, ComponentOptions } from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
 
 export class Application {
@@ -39,7 +39,7 @@ export class Application {
         });
     }
 
-    public boot(Vue: VueConstructor<Vue>): void {
+    public boot(Vue: VueConstructor<Vue>, options?: ComponentOptions<Vue>): void {
         Vue.use(VueRouter);
 
         // Register global components
@@ -48,11 +48,10 @@ export class Application {
             Vue.component(keys[i], this._components[keys[i]]);
         }
 
+        if (options === undefined) options = { el: '#app' };
+        options.router = new VueRouter({ mode: 'history', routes: this._routes });
+
         // Build the root component for the single page application.
-        let router = new VueRouter({ mode: 'history', routes: this._routes });
-        new Vue({
-            el: '#app',
-            router
-        });
+        new Vue(options);
     }
 }
