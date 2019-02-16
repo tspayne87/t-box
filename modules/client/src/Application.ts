@@ -3,7 +3,6 @@ import VueRouter, { RouteConfig } from 'vue-router';
 
 export class Application {
     private _routes: RouteConfig[] = [];
-    private _components: { [key: string]: VueConstructor } = {};
 
     public registerRoute(config: string , component: () => Promise<any>);
     public registerRoute(config: RouteConfig, component: () => Promise<any>);
@@ -20,7 +19,7 @@ export class Application {
     }
 
     public registerComponent(name: string, component: VueConstructor) {
-        this._components[name] = (<any>component).default || component;
+        Vue.component(name, (<any>component).default || component);
     }
 
     public registerPlugins(context: __WebpackModuleApi.RequireContext): Promise<void> {
@@ -39,19 +38,8 @@ export class Application {
         });
     }
 
-    public boot(Vue: VueConstructor<Vue>, options?: ComponentOptions<Vue>): void {
+    public generateRouter(Vue: VueConstructor<Vue>): VueRouter {
         Vue.use(VueRouter);
-
-        // Register global components
-        let keys = Object.keys(this._components);
-        for (let i = 0; i < keys.length; ++i) {
-            Vue.component(keys[i], this._components[keys[i]]);
-        }
-
-        if (options === undefined) options = { el: '#app' };
-        options.router = new VueRouter({ mode: 'history', routes: this._routes });
-
-        // Build the root component for the single page application.
-        new Vue(options);
+        return new VueRouter({ mode: 'history', routes: this._routes });
     }
 }
