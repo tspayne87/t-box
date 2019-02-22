@@ -1,5 +1,6 @@
 import { Route, Get, Post, Delete, Controller, AssetResult, Body, FileContainer } from '../../src';
 import * as path from 'path';
+import { Authorize } from '../authorize';
 
 @Route('user')
 export class UserController extends Controller {
@@ -66,6 +67,12 @@ export class UserController extends Controller {
     @Get('{id}/path')
     public testPath(id: string): string {
         return `${id}-path`;
+    }
+
+    @Authorize()
+    @Get('{id}/before/callback')
+    public beforeCallbackCheck(id: string): string {
+        return 'Hello World';
     }
 
     @Post()

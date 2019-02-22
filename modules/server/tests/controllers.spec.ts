@@ -64,6 +64,17 @@ describe('{Controller}:/user', function() {
             .catch((err) => done(err));
     });
 
+    it('{GET}:/user/{id}/before/callback', (done) => {
+        http.Get(`http://localhost:${port}/user/index/before/callback`)
+            .then((data) => {
+                assert.equal(http.status, 401);
+                assert.equal(http.headers['content-type'], 'application/json');
+                assert.deepEqual({ message: 'Unauthorized Attribute' }, data);
+                done();
+            })
+            .catch((err) => done(err));
+    });
+
     it('{GET}:/user/*', (done) => {
         http.Get(`http://localhost:${port}/user/${id}/abort`)
             .then((data) => {

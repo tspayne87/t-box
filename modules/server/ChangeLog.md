@@ -1,4 +1,12 @@
-0.3.1 / 2019-02-10
+0.3.3 / 2019-02-21
+===================
+
+  * Exposing the status enum to be used on result objects
+  * Added in 'createBeforeDecorator' to create custom attributes that will be called before the route
+  * Changed server to handle the before attribute callbacks
+  * Changed the internal logic of how routes are saved on an object moving from attaching to constructor to reflection
+
+0.3.2 / 2019-02-10
 ===================
 
   * Updating process arguments to new up the type instead of just calling the function

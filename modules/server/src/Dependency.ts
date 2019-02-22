@@ -77,6 +77,15 @@ export class Dependency {
     }
 
     /**
+     * Method is meant to call a function with resolved parameters.
+     * 
+     * @param func The function we need to inject items into.
+     */
+    public callFunction(func: Function) {
+        return func();
+    }
+
+    /**
      * Helper method to get the arguments for a class to be built with.
      * 
      * @param item The item in which we need to get the arguments for dependency injection.

@@ -18,6 +18,7 @@ import { bodyMetadataKey } from '../decorators';
 import { RouteContainer } from './RouteContainer';
 import { ServerRequestWrapper } from '../ServerRequestWrapper';
 import { ServerResponseWrapper } from '../ServerResponseWrapper';
+import { beforeCallbackMetaKey, afterCallbackMetaKey } from '../utils';
 
 /**
  * Internal server class that deals with the underlining http module to listen on a port for requests and process
@@ -333,17 +334,49 @@ export class InternalServer {
      */
     private processRoute(route: IInternalRoute, parsedUrl: url.UrlWithParsedQuery, dependency: Dependency, body: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            let controller = dependency.resolve(route.controller);
-            controller._dirname = this._dir;
+            this.processBeforeRoute(route, dependency)
+                .then(x => {
+                    if (x !== undefined) return resolve(x);
 
-            let response = controller[route.key].apply(controller, this.processArguments(route, body, parsedUrl, controller));
-            if (isPromise(response)) {
-                response
-                    .then(x => resolve(x))
-                    .catch(err => reject(err));
-            } else {
-                resolve(response);
-            }
+                    let controller = dependency.resolve(route.controller);
+                    controller._dirname = this._dir;
+
+                    let response = controller[route.key].apply(controller, this.processArguments(route, body, parsedUrl, controller));
+                    if (isPromise(response)) {
+                        response
+                            .then(x => resolve(x))
+                            .catch(err => reject(err));
+                    } else {
+                        resolve(response);
+                    }
+                })
+                .catch(err => resolve(err));
+        });
+    }
+
+    private processBeforeRoute(route: IInternalRoute, dependency: Dependency) {
+        return new Promise<Result | undefined>((resolve, reject) => {
+            let callbacks = Reflect.getOwnMetadata(beforeCallbackMetaKey, route.target, route.key) || [];
+            let iterator = (index, result?: Result) => {
+                if (result !== undefined && !(result instanceof Result)) {
+                    this._logger.info('Before decorator callback needs to return an instance of the Result class');
+                    result = undefined;
+                }
+
+                if (index > callbacks.length || result !== undefined) {
+                    resolve(result);
+                } else {
+                    let response = dependency.callFunction(callbacks[index - 1]);
+                    if (isPromise(response)) {
+                        response
+                            .then(x => iterator(++index, x))
+                            .catch(err => reject(err));
+                    } else {
+                        iterator(++index, response);
+                    }
+                }
+            };
+            iterator(1);
         });
     }
 

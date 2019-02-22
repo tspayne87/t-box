@@ -166,3 +166,23 @@ Example:
         }
     }
 ```
+
+## Custom Before Callbacks
+You can create custom callbacks that can be used before routes, this can be used for authorize attributes for an app or any other types of attributes that need to be called before a method.  A result object can be returned if you want to end the request without going to the route method, however if nothing is returned it will continue on as if the attribute was never added to the route.
+Example:
+```typescript
+    import { createBeforeDecorator, Status, JsonResult } from '@t-box/server';
+
+    export function Authorize(...perms: string[]) {
+        return createBeforeDecorator(function() {
+            // Process permissions and return result object if do not have permissions to view page.
+            let result = new JsonResult();
+            result.status = Status.Unauthorized;
+            result.body = { message: 'Unauthorized Attribute' };
+            return result;
+
+            // Otherwise return nothing to allow for normal processing of method.
+            return;
+        });
+    }
+```

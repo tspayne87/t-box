@@ -11,6 +11,8 @@ The file result handles sending down downloadedable files that are processed by 
 The html result deals with an html string that needs to be passed to the client.
 ## JsonResult
 The json result is the main structure that is used it will take an object and stringify it for the response for the client.
+## Status
+The status enum that can be used as short-hand for status codes.
 
 ## Examples
 Basic usage of all the results supplied by T-box:
