@@ -1,3 +1,10 @@
+0.3.4 / 2019-02-21
+===================
+
+  * Breaking Change: Renaming 'createBeforeDecorator' to 'createBeforeActionDecorator'
+  * Changed the before action decorator to include injection by changing the callback function to a class
+  * Added BeforeAction class to help with creating before action decorators
+
 0.3.3 / 2019-02-21
 ===================
 

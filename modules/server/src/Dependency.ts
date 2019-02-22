@@ -71,18 +71,9 @@ export class Dependency {
      * 
      * @param item The item that needs to be resolved and the instance created, with the arguments injected into it.
      */
-    public resolve(dependency: IDependency) {
+    public resolve(dependency: IDependency): any {
         let args = this.getDependencyInjections(dependency);
         return new dependency(...args);
-    }
-
-    /**
-     * Method is meant to call a function with resolved parameters.
-     * 
-     * @param func The function we need to inject items into.
-     */
-    public callFunction(func: Function) {
-        return func();
     }
 
     /**

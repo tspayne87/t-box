@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { Method } from './enums';
-import { Result } from './results';
+import { IBeforeAction } from './BeforeAction';
 
 /**
  * Meta key used in reflect-metadata to deal with saving the body information for use later.
@@ -36,11 +36,11 @@ export function createRouteDecorator(method: Method): (path?: string) => (target
  * 
  * @param method The method that this route decorator should use when building out the routes for the controller.
  */
-export function createBeforeDecorator(callback: Function): (target: any, key: string, descriptor: TypedPropertyDescriptor<any>) => void {
+export function createBeforeActionDecorator(action: IBeforeAction): (target: any, key: string, descriptor: TypedPropertyDescriptor<any>) => void {
     return (target: any, key: string, descriptor: TypedPropertyDescriptor<any>) => {
         const Ctor = target.constructor;
         let existingBeforeCallbacks: any[] = Reflect.getOwnMetadata(beforeCallbackMetaKey, Ctor) || [];
-        existingBeforeCallbacks.push(callback);
+        existingBeforeCallbacks.push(action);
         Reflect.defineMetadata(beforeCallbackMetaKey, existingBeforeCallbacks, Ctor, key);
     };
 }

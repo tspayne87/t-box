@@ -1,10 +1,18 @@
-import { createBeforeDecorator, Status, JsonResult } from '../src';
+import { createBeforeActionDecorator, Status, JsonResult, Result, ServerRequestWrapper, Injectable, BeforeAction } from '../src';
 
 export function Authorize(...perms: string[]) {
-    return createBeforeDecorator(function() {
-        let result = new JsonResult();
-        result.status = Status.Unauthorized;
-        result.body = { message: 'Unauthorized Attribute' };
-        return result;
-    });
+    @Injectable
+    class InternalAuthorize extends BeforeAction {
+        constructor(private _req: ServerRequestWrapper) {
+            super();
+        }
+
+        public beforeRequest(): Result | Promise<Result | undefined> | undefined {
+            let result = new JsonResult();
+            result.status = Status.Unauthorized;
+            result.body = { message: 'Unauthorized Attribute' };
+            return result;
+        }
+    }
+    return createBeforeActionDecorator(InternalAuthorize);
 }
