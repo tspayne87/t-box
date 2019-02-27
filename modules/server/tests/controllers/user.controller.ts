@@ -75,6 +75,11 @@ export class UserController extends Controller {
         return 'Hello World';
     }
 
+    @Get('{id}/redirect')
+    public testRedirect(id: string) {
+        return this.redirect(`${id}/before/callback`);
+    }
+
     @Post()
     public saveUser(@Body user: any): any {
         return user;

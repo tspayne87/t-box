@@ -1,5 +1,5 @@
 import { IRoute, IInternalRoute } from './interfaces';
-import { HtmlResult, AssetResult } from './results';
+import { HtmlResult, AssetResult, RedirectResult } from './results';
 
 /**
  * Helper interface that is used internaly so that typescript builds properly.
@@ -35,5 +35,14 @@ export class Controller {
      */
     public asset(asset: string): AssetResult {
         return new AssetResult(asset);
+    }
+
+    /**
+     * Method is meant to redirect the url to another place.
+     * 
+     * @param url The url where we need to be redirected to.
+     */
+    public redirect(url: string): RedirectResult {
+        return new RedirectResult(url);
     }
 }

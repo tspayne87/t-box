@@ -169,6 +169,18 @@ describe('{Controller}:/user', function() {
             .catch((err) => done(err));
     });
 
+    it('{Get}:/{id}/redirect', (done) => {
+        http.Get(`http://localhost:${port}/user/test/redirect`)
+            .then((data) => {
+                assert.equal(http.status, 301);
+                assert.equal(http.headers['content-type'], 'application/actet-stream');
+                assert.equal(http.headers['location'], 'test/before/callback');
+                assert.deepEqual('', data);
+                done();
+            })
+            .catch((err) => done(err));
+    });
+
     it('File Upload', (done) => {
         http.File(`http://localhost:${port}/user/upload`, __dirname + '/test-file.txt', 'test.txt')
             .then((data) => {

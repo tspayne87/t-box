@@ -12,6 +12,11 @@ export class TodoController extends Controller {
         return this._service.todos.filter(x => term === undefined || term.length === 0 || x.name.startsWith(term));
     }
 
+    @Get('[action]')
+    public redirectTodo() {
+        return this.redirect('/todo?term=test');
+    }
+
     @Get('{id}')
     public get(id: number) {
         let found = this._service.todos.filter(x => x.id === id);

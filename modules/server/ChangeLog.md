@@ -1,3 +1,8 @@
+0.3.5 / 2019-02-27
+===================
+
+  * Adding the Redirect result as well as redirect method on the controller.
+
 0.3.4 / 2019-02-21
 ===================
 
