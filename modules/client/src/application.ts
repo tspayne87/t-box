@@ -1,45 +1,44 @@
 import Vue, { VueConstructor, ComponentOptions } from 'vue';
+import { upperFirst, camelCase } from 'lodash';
 import VueRouter, { RouteConfig } from 'vue-router';
+import { RouteContainer } from './routeContainer';
 
 export class Application {
-    private _routes: RouteConfig[] = [];
+    private _routeContainer: RouteContainer;
+    private _components: { [key: string]: any };
 
-    public registerRoute(config: string , component: () => Promise<any>);
-    public registerRoute(config: RouteConfig, component: () => Promise<any>);
-    public registerRoute(config: string | RouteConfig, component: () => Promise<any>) {
-        if (typeof config === 'string') {
-            this._routes.push(<RouteConfig>{
-                path: config,
-                component: component
-            });
-        } else {
-            config.component = <any>component;
-            this._routes.push(config);
+    constructor() {
+        this._routeContainer = new RouteContainer();
+        this._components = {};
+    }
+
+    public registerComponents(ctx: __WebpackModuleApi.RequireContext) {
+        const keys = ctx.keys();
+        for (let i = 0; i < keys.length; ++i) {
+            const config = ctx(keys[i]);
+            const arrayPath = keys[i].replace(/^\.\//, '').replace(/\.\w+$/, '').split('/');
+            const name = upperFirst(camelCase(arrayPath.slice(arrayPath.length - 2).join('/')));
+            this._components[name] = config.default || config;
         }
     }
 
-    public registerComponent(name: string, component: VueConstructor) {
-        Vue.component(name, (<any>component).default || component);
-    }
-
-    public registerPlugins(context: __WebpackModuleApi.RequireContext): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            try {
-                let keys = context.keys();
-                for (let i = 0; i < keys.length; ++i) {
-                    let plugin = context(keys[i]).default;
-                    plugin(this);
-                }
-            } catch (e) {
-                reject(e);
-            } finally {
-                resolve();
-            }
-        });
+    public registerPages(ctx: __WebpackModuleApi.RequireContext) {
+        let keys = ctx.keys();
+        for (let i = 0; i < keys.length; ++i) {
+            let plugin = ctx(keys[i]).default;
+            plugin(this._routeContainer);
+        }
     }
 
     public generateRouter(Vue: VueConstructor<Vue>): VueRouter {
         Vue.use(VueRouter);
-        return new VueRouter({ mode: 'history', routes: this._routes });
+        return new VueRouter({ mode: 'history', routes: this._routeContainer.routes });
+    }
+
+    public install(Vue: VueConstructor<Vue>, options?: any) {
+        let componentKeys = Object.keys(this._components);
+        for (let i = 0; i < componentKeys.length; ++i) {
+            Vue.component(componentKeys[i], this._components[componentKeys[i]]);
+        }
     }
 }

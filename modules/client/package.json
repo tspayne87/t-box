@@ -1,6 +1,6 @@
 {
   "name": "@t-box/client",
-  "version": "0.0.3",
+  "version": "0.1.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "build": "gulp build"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "peerDependencies": {
     "vue-router": "^3.0.1",
     "vue": "^2.5.16"
@@ -25,11 +25,11 @@
     "mocha": "^5.2.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
-    "typescript": "^3.2.1",
-    "vue-class-component": "^6.3.2"
+    "typescript": "^3.2.1"
   },
   "dependencies": {
-    "vue": "^2.5.17",
+    "lodash": "^4.17.11",
+    "vue": "^2.6.1",
     "vue-router": "^3.0.2"
   }
 }
