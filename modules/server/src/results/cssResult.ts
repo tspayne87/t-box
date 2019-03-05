@@ -1,6 +1,7 @@
 import { Result } from './result';
 import { Http2ServerResponse } from 'http2';
 import { ServerResponse } from 'http';
+import { IServerConfig } from '../interfaces';
 
 /**
  * A result that handles an css string.
@@ -21,8 +22,8 @@ export class CssResult extends Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public async processResponse(res: Http2ServerResponse | ServerResponse) {
+    public async processResponse(res: Http2ServerResponse | ServerResponse, config: IServerConfig) {
         this.headers['Content-Type'] = 'text/css';
-        super.processResponse(res);
+        super.processResponse(res, config);
     }
 }

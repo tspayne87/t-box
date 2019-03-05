@@ -1,3 +1,13 @@
+0.3.6 / 2019-03-05
+===================
+
+  * Breaking Change: Assets are not located in the individual modules where the controllers lie, they are now located in their own folder that can be configured in the server.
+  * Breaking Change: Removed registerStaticFolders method from the application and moved it into the configuration object passed into the application's contructor.
+  * Breaking Change: Removed uploadDir property from the application and moved it into the configuration object passed into the application's constructor.
+  * Added: Configuration object to application to configure static location, upload directory, current working directory and asset directory.
+  * Added: Optional fullPath argument to AssetResult to allow for full path configuration for the asset result.
+  * Added: Extra parameter into the processResponse method on the results so that the server can push in its configuration so that the asset result can figure out where the asset folder is.
+
 0.3.5 / 2019-02-27
 ===================
 

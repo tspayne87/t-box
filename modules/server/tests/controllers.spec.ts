@@ -10,10 +10,10 @@ describe('{Controller}:/user', function() {
     let port = 8000;
 
     let http = new Http();
-    let app = new Application(__dirname);
+    let app = new Application({ cwd: __dirname, assetDir: 'assets' });
     app.register('controllers');
 
-    let fileContents = fs.readFileSync(path.join(__dirname, 'controllers', 'index.html')).toString();
+    let fileContents = fs.readFileSync(path.join(__dirname, 'assets', 'index.html')).toString();
 
     before(function (done) {
         app.listen(port);

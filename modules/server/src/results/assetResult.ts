@@ -1,6 +1,7 @@
 import { Result } from './result';
 import { Http2ServerResponse } from 'http2';
 import { ServerResponse } from 'http';
+import { IServerConfig } from '../interfaces';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -12,6 +13,10 @@ export class AssetResult extends Result {
      * The current asset we are searching for.
      */
     private _asset: string;
+    /**
+     * Determine if the full path is needed.
+     */
+    private _fullPath: boolean;
     /**
      * JS Regular expression for file types.
      */
@@ -46,9 +51,11 @@ export class AssetResult extends Result {
      * 
      * @param asset The asset we are looking for.
      */
-    constructor(asset: string) {
+    constructor(asset: string, fullPath: boolean = false) {
         super();
         this._asset = asset;
+        this._fullPath = fullPath;
+
         this._jsRegex = /\.js$/;
         this._cssRegex = /\.css$/;
         this._woff = /\.woff$/;
@@ -63,20 +70,12 @@ export class AssetResult extends Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public async processResponse(res: Http2ServerResponse | ServerResponse) {
-        if (this.route !== null) {
-            let dirname = path.dirname(this.route.location);
-            if (await this.fileExists(dirname)) {
-                this.headers['Content-Type'] = this.getContentType(dirname);
-                this.body = await this.readFile(dirname);
-            }
-        } else {
-            if (await this.fileExists()) {
-                this.headers['Content-Type'] = this.getContentType();
-                this.body = await this.readFile();
-            }
+    public async processResponse(res: Http2ServerResponse | ServerResponse, config: IServerConfig) {
+        if (await this.fileExists(config)) {
+            this.headers['Content-Type'] = this.getContentType();
+            this.body = await this.readFile(config);
         }
-        super.processResponse(res);
+        super.processResponse(res, config);
     }
 
     /**
@@ -84,10 +83,9 @@ export class AssetResult extends Result {
      * 
      * @param dirname The directory that needs to be searched in.
      */
-    private fileExists(dirname?: string): Promise<boolean> {
+    private fileExists(config: IServerConfig): Promise<boolean> {
         return new Promise<boolean>(resolve => {
-            let filePath = dirname === undefined ? this._asset : path.join(dirname, this._asset);
-            fs.exists(filePath, (exists) => {
+            fs.exists(this._fullPath ? this._asset : path.join(config.cwd, config.assetDir || '', this._asset), (exists) => {
                 resolve(exists);
             });
         });
@@ -98,10 +96,9 @@ export class AssetResult extends Result {
      * 
      * @param dirname The directory that needs to be searched in.
      */
-    private readFile(dirname?: string): Promise<Buffer> {
+    private readFile(config: IServerConfig): Promise<Buffer> {
         return new Promise<Buffer>((resolve, reject) => {
-            let filePath = dirname === undefined ? this._asset : path.join(dirname, this._asset);
-            fs.readFile(filePath, (err, buf) => {
+            fs.readFile(this._fullPath ? this._asset : path.join(config.cwd, config.assetDir || '', this._asset), (err, buf) => {
                 if (err) return reject(err);
                 resolve(buf);
             });
@@ -113,21 +110,20 @@ export class AssetResult extends Result {
      * 
      * @param dirname The directory that needs to be searched in.
      */
-    private getContentType(dirname?: string): string {
-        let filePath = dirname === undefined ? this._asset : path.join(dirname, this._asset);
-        if (this._jsRegex.test(filePath)) {
+    private getContentType(): string {
+        if (this._jsRegex.test(this._asset)) {
             return 'application/javascript';
-        } else if (this._cssRegex.test(filePath)) {
+        } else if (this._cssRegex.test(this._asset)) {
             return 'text/css';
-        } else if (this._woff2.test(filePath)) {
+        } else if (this._woff2.test(this._asset)) {
             return 'font/woff2';
-        } else if (this._woff.test(filePath)) {
+        } else if (this._woff.test(this._asset)) {
             return 'font/woff';
-        } else if (this._html.test(filePath)) {
+        } else if (this._html.test(this._asset)) {
             return 'text/html';
-        } else if (this._png.test(filePath)) {
+        } else if (this._png.test(this._asset)) {
             return 'image/png';
-        } else if (this._svg.test(filePath)) {
+        } else if (this._svg.test(this._asset)) {
             return 'image/svg+xml';
         } else {
             return 'application/octet-stream';

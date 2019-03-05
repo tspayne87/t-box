@@ -2,7 +2,7 @@
 The results are the objects that handle what is sent down from the server, these can be extended on if something is done often in your project.
 
 ## AssetResult
-The asset result handles files that need to be processed by the individual controllers and are meant to be dealt with based on where the controller is located in the file system.
+The asset result is a way to handle assets that need to be sent down from the server but are not public like the static results.
 ## CssResult
 The css result is meant to deal with custom css strings that need to be sent down from the server.
 ## FileResult
