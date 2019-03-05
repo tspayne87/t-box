@@ -1,4 +1,9 @@
 {
+    "linterOptions": {
+        "exclude": [
+            "node_modules/**"
+        ]
+    },
     "rules": {
         "member-access": [
             true,
