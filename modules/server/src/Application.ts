@@ -24,6 +24,10 @@ export class Application {
      */
     private _server: InternalServer;
     /**
+     * The server handler that is currently attached to the request listener.
+     */
+    private _serverHandler!: (req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse) => void;
+    /**
      * The internal webserver.
      */
     private _webServer!: http.Server;
@@ -150,11 +154,21 @@ export class Application {
      * @param server The server that needs to be bound to.
      */
     public bootstrap(server: http.Server | http2.Http2Server) {
-        server.on('request', this._server.requestListener.bind(this._server));
+        this._serverHandler = this._server.requestListener.bind(this._server);
+        server.on('request', this._serverHandler);
         if (!this._bootStrapped && this._serviceHandler !== undefined) {
             this._serviceHandler.addServices(this._dependency);
         }
         this._bootStrapped = true;
+    }
+
+    /**
+     * Method is meant to unbind from the server.
+     * 
+     * @param server The server that needs to be unbounded.
+     */
+    public unbind(server: http.Server | http2.Http2Server) {
+        server.removeListener('request', this._serverHandler);
     }
 
     /**

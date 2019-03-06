@@ -39,6 +39,10 @@ Method is meant to register middleware components that should be called before t
 - callback :: A callback that should be called before the injected route and route is called.
 ### bootstrap(server)
 Method is meant to attach the internal server handler to a node server.
+- server :: The node server that the internal server needs to be bound to.
+### unbind(server)
+Method is meant to unbind the internal server from the node server.
+- server :: The node server the internal needs to be unbounded to.
 ### listen(args)
 Method will start the server and pass in the arguments explained at [NodeJs Documentation](https://nodejs.org/api/http.html#http_server_listen)
 ### close(callback)

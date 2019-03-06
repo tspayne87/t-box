@@ -1,6 +1,11 @@
 0.3.6 / 2019-03-05
 ===================
 
+  * Added: Application added new method unbind to allow for unbinding from a node server.
+
+0.3.6 / 2019-03-05
+===================
+
   * Breaking Change: Assets are not located in the individual modules where the controllers lie, they are now located in their own folder that can be configured in the server.
   * Breaking Change: Removed registerStaticFolders method from the application and moved it into the configuration object passed into the application's contructor.
   * Breaking Change: Removed uploadDir property from the application and moved it into the configuration object passed into the application's constructor.
