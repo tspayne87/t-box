@@ -4,6 +4,7 @@ import { ILogger, ConsoleLogger } from './loggers';
 import { IController } from './Controller';
 import { IInjector } from './Injector';
 import { IServiceHandler, IServerConfig } from './interfaces';
+import * as isPromise from 'is-promise';
 import * as http2 from 'http2';
 import * as http from 'http';
 import * as path from 'path';
@@ -153,11 +154,14 @@ export class Application {
      * 
      * @param server The server that needs to be bound to.
      */
-    public bootstrap(server: http.Server | http2.Http2Server) {
+    public async bootstrap(server: http.Server | http2.Http2Server) {
         this._serverHandler = this._server.requestListener.bind(this._server);
         server.on('request', this._serverHandler);
         if (!this._bootStrapped && this._serviceHandler !== undefined) {
-            this._serviceHandler.addServices(this._dependency);
+            let result = this._serviceHandler.addServices(this._dependency);
+            if (isPromise(result)) {
+                await result;
+            }
         }
         this._bootStrapped = true;
     }

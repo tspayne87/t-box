@@ -1,4 +1,9 @@
-0.3.6 / 2019-03-05
+0.3.7 / 2019-03-05
+===================
+
+  * Changed IServiceHandler to allow for promises in the 'addServices' method.
+
+0.3.7 / 2019-03-05
 ===================
 
   * Added: Application added new method unbind to allow for unbinding from a node server.
