@@ -86,6 +86,17 @@ describe('{Controller}:/user', function() {
             .catch((err) => done(err));
     });
 
+    it('{GET}:/user/getToken/{token}', (done) => {
+        http.Get(`http://localhost:${port}/user/getToken/${id}`)
+            .then((data) => {
+                assert.equal(http.status, 200);
+                assert.equal(http.headers['content-type'], 'application/json');
+                assert.equal(`special-${id}`, data);
+                done();
+            })
+            .catch((err) => done(err));
+    });
+
     it('{POST}:/user', (done) => {
         http.Post(`http://localhost:${port}/user`, { id })
             .then((data) => {

@@ -1,4 +1,9 @@
-0.3.7 / 2019-03-05
+0.3.9 / 2019-03-16
+===================
+
+  * Bug Fix: Fixed bug that was causing some routes to not go to the correct routes based on parameters.
+
+0.3.8 / 2019-03-05
 ===================
 
   * Changed IServiceHandler to allow for promises in the 'addServices' method.

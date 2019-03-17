@@ -21,6 +21,11 @@ export class UserController extends Controller {
         return 'index.html';
     }
 
+    @Get('[action]/{token}')
+    public getToken(token: string) {
+        return `special-${token}`;
+    }
+
     @Get('*')
     public allUser() {
         return 'all-user';
