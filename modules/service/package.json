@@ -1,0 +1,45 @@
+{
+  "name": "@t-box/service",
+  "version": "0.1.0",
+  "description": "A simple NodeJs service layer for mongoose.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "keywords": [
+    "service",
+    "nodejs"
+  ],
+  "scripts": {
+    "test": "mocha -r ts-node/register tests/**/*.spec.ts",
+    "build": "gulp build"
+  },
+  "homepage": "https://terry-payne-web.herokuapp.com/t-box",
+  "author": "Terry Payne",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tspayne87/t-box/tree/master/modules/service"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "mongoose": "^5.5.2"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/formidable": "^1.0.31",
+    "@types/mmmagic": "^0.4.29",
+    "@types/mocha": "^5.2.5",
+    "@types/mongoose": "^5.3.26",
+    "@types/node": "^10.12.11",
+    "@types/reflect-metadata": "^0.1.0",
+    "@types/webpack-env": "^1.13.6",
+    "chai": "^4.2.0",
+    "gulp": "^4.0.0",
+    "gulp-tslint": "^8.1.3",
+    "gulp-typescript": "^5.0.0",
+    "merge2": "^1.2.3",
+    "mocha": "^5.2.0",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "tslint-config-standard": "^8.0.1",
+    "typescript": "^3.2.1"
+  }
+}
