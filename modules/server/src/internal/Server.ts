@@ -64,6 +64,8 @@ export class InternalServer {
      */
     constructor(dependency: Dependency, config: IServerConfig, logger?: ILogger) {
         this._config = config;
+        if (this._config.compress === undefined) this._config.compress = true;
+        
         this._middlewareCallbacks = [];
         this._dependency = dependency;
         this._faviconRegex = /favicon\.icon$/;
@@ -239,7 +241,7 @@ export class InternalServer {
                     if (result instanceof Result) {
                         response = result;
                     } else {
-                        response.body = result;
+                        response.data = result;
                     }
                     response.route = routes[0];
                 } else {

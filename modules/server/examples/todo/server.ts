@@ -1,7 +1,6 @@
 import { Application } from '../../src';
 import { ServiceHandler } from './services/ServiceHandler';
 import * as http2 from 'http';
-import * as fs from 'fs';
 
 let server = http2.createServer();
 

@@ -39,7 +39,7 @@ export class Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public processResponse(req: IncomingMessage | Http2ServerRequest, res: ServerResponse, config: IServerConfig) {
+    public processResponse(req: IncomingMessage | Http2ServerRequest, res: ServerResponse | Http2ServerResponse, config: IServerConfig) {
         return new Promise<void>((resolve, reject) => {
             try {
                 this.headers['Content-Type'] = this.headers['Content-Type'] || 'application/actet-stream';
@@ -62,8 +62,8 @@ export class Result {
                     }
 
                     res.writeHead(this.status, this.headers);
-                    this.body.pipe(res)
-                        .on('close', () => {
+                    this.body.pipe(res as any)
+                        .on('end', () => {
                             res.end(() => {
                                 resolve();
                             });
