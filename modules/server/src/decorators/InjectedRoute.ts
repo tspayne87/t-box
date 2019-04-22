@@ -1,3 +1,5 @@
+import { getParamNames, routesMetaKey } from '../utils';
+
 /**
  * Attribute for injectors to give the controller route information that will be used by the server.
  * 
@@ -13,10 +15,11 @@ export function InjectedRoute(path: string): any {
             public static generateRoutes() {
                 // Add in the routes to the class
                 let routes: any[] = [];
-                // Add in the routes to the class
-                if (target.__routes__ !== undefined) {
-                    for (let i = 0; i < target.__routes__.length; ++i) {
-                        let route = Object.assign({}, target.__routes__[i]);
+                let internalRoutes: any[] | undefined = Reflect.getOwnMetadata(routesMetaKey, target);
+                if (internalRoutes !== undefined) {
+                    for (let i = 0; i < internalRoutes.length; ++i) {
+                        let route = Object.assign({}, internalRoutes[i]);
+                        route.target = target;
                         route.path = route.path.length > 0 ? `${path}/${route.path}` : path;
                         route.splitPath = route.path.split('/');
                         routes.push(route);

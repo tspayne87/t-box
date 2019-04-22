@@ -1,4 +1,49 @@
-0.3.1 / 2019-02-10
+0.3.9 / 2019-03-16
+===================
+
+  * Bug Fix: Fixed bug that was causing some routes to not go to the correct routes based on parameters.
+
+0.3.8 / 2019-03-05
+===================
+
+  * Changed IServiceHandler to allow for promises in the 'addServices' method.
+
+0.3.7 / 2019-03-05
+===================
+
+  * Added: Application added new method unbind to allow for unbinding from a node server.
+
+0.3.6 / 2019-03-05
+===================
+
+  * Breaking Change: Assets are not located in the individual modules where the controllers lie, they are now located in their own folder that can be configured in the server.
+  * Breaking Change: Removed registerStaticFolders method from the application and moved it into the configuration object passed into the application's contructor.
+  * Breaking Change: Removed uploadDir property from the application and moved it into the configuration object passed into the application's constructor.
+  * Added: Configuration object to application to configure static location, upload directory, current working directory and asset directory.
+  * Added: Optional fullPath argument to AssetResult to allow for full path configuration for the asset result.
+  * Added: Extra parameter into the processResponse method on the results so that the server can push in its configuration so that the asset result can figure out where the asset folder is.
+
+0.3.5 / 2019-02-27
+===================
+
+  * Adding the Redirect result as well as redirect method on the controller.
+
+0.3.4 / 2019-02-21
+===================
+
+  * Breaking Change: Renaming 'createBeforeDecorator' to 'createBeforeActionDecorator'
+  * Changed the before action decorator to include injection by changing the callback function to a class
+  * Added BeforeAction class to help with creating before action decorators
+
+0.3.3 / 2019-02-21
+===================
+
+  * Exposing the status enum to be used on result objects
+  * Added in 'createBeforeDecorator' to create custom attributes that will be called before the route
+  * Changed server to handle the before attribute callbacks
+  * Changed the internal logic of how routes are saved on an object moving from attaching to constructor to reflection
+
+0.3.2 / 2019-02-10
 ===================
 
   * Updating process arguments to new up the type instead of just calling the function

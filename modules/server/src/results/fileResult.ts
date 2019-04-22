@@ -1,7 +1,9 @@
 import { Result } from './result';
-import { Http2ServerResponse } from 'http2';
-import { ServerResponse } from 'http';
+import { Http2ServerResponse, Http2ServerRequest } from 'http2';
+import { ServerResponse, IncomingMessage } from 'http';
+import { IServerConfig } from '../interfaces';
 import * as fs from 'fs';
+import { Duplex } from 'stream';
 
 /**
  * A result that handles an file download.
@@ -26,9 +28,12 @@ export class FileResult extends Result {
     constructor(fileName: string, data: string | Buffer, contentType: string = 'application/octet-stream') {
         super();
         if (typeof data === 'string') {
-            this.body = fs.readFileSync(data);
+            this.body = fs.createReadStream(data);
         } else  {
-            this.body = data;
+            let stream = new Duplex();
+            stream.push(data);
+            stream.push(null);
+            this.body = stream;
         }
         this._fileName = fileName;
         this._contentType = contentType;
@@ -39,10 +44,12 @@ export class FileResult extends Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public async processResponse(res: Http2ServerResponse | ServerResponse) {
+    public async processResponse(req: IncomingMessage | Http2ServerRequest, res: Http2ServerResponse | ServerResponse, config: IServerConfig) {
         this.headers['Content-Type'] = this._contentType;
         this.headers['Content-Disposition'] = `attachment; filename=${this._fileName}`;
-        this.headers['Content-Length'] = (<Buffer>this.body).length.toString();
-        super.processResponse(res);
+
+        // TODO: Figure out the length of the stream
+        // this.headers['Content-Length'] = this.body !== undefined ? this.body.
+        super.processResponse(req, res, config);
     }
 }

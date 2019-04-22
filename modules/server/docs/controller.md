@@ -7,11 +7,15 @@ The directory in which the server is running in.
 
 ## Methods
 ### html(html)
-Method is meant to return an [html result](results.md)
+Method is meant to return a [html result](results.md)
 - html :: A html string that needs to be sent to the client.
-### asset(asset)
-Method is meant to return an asset from where the controller is located.
+### asset(asset, fullPath = false)
+Method is meant to return an asset from the assets folder configured by the server.
 - asset :: An asset that needs to be passed down to the client.
+- fullPath :: An optional parameter to tell the asset if the asset is a full path and that it should not go looking for the correct location.
+### redirect(url)
+Method is meant to return a [redirect result](results.md)
+- url :: The URL that we currently need to redirect to.
 
 ## Example
 ```typescript

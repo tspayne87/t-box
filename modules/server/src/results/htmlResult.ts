@@ -1,6 +1,8 @@
 import { Result } from './result';
-import { Http2ServerResponse } from 'http2';
-import { ServerResponse } from 'http';
+import { Http2ServerResponse, Http2ServerRequest } from 'http2';
+import { ServerResponse, IncomingMessage } from 'http';
+import { IServerConfig } from '../interfaces';
+import { Readable } from 'stream';
 
 /**
  * A result that handles an html string.
@@ -13,7 +15,12 @@ export class HtmlResult extends Result {
      */
     constructor(html?: string) {
         super();
-        this.body = html;
+        if (html !== undefined) {
+            let stream = new Readable();
+            stream.push(html);
+            stream.push(null);
+            this.body = stream;
+        }
     }
 
     /**
@@ -21,8 +28,8 @@ export class HtmlResult extends Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public async processResponse(res: Http2ServerResponse | ServerResponse) {
+    public async processResponse(req: IncomingMessage | Http2ServerRequest, res: Http2ServerResponse | ServerResponse, config: IServerConfig) {
         this.headers['Content-Type'] = 'text/html';
-        super.processResponse(res);
+        super.processResponse(req, res, config);
     }
 }

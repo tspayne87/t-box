@@ -9,3 +9,6 @@ export { FileContainer } from './internal/UploadFile';
 export { IServiceHandler } from './interfaces';
 export * from './ServerRequestWrapper';
 export * from './ServerResponseWrapper';
+export { createBeforeActionDecorator } from './utils';
+export { Status } from './enums';
+export { BeforeAction } from './BeforeAction';

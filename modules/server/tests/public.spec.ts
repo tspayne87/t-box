@@ -8,8 +8,7 @@ describe('{Static}:/public', function() {
     let port = 8000;
 
     let http = new Http();
-    let app = new Application(__dirname);
-    app.registerStaticFolders('public');
+    let app = new Application({ cwd: __dirname, staticFolders: ['public'], assetDir: 'assets' });
 
     before(function (done) {
         app.listen(port);

@@ -1,6 +1,6 @@
 {
   "name": "@t-box/server",
-  "version": "0.3.2",
+  "version": "0.3.9",
   "description": "A simple NodeJs server that uses controllers for routes.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -37,6 +37,7 @@
     "@types/formidable": "^1.0.31",
     "@types/mmmagic": "^0.4.29",
     "@types/mocha": "^5.2.5",
+    "@types/mongoose": "^5.3.19",
     "@types/node": "^10.12.11",
     "@types/reflect-metadata": "^0.1.0",
     "@types/webpack-env": "^1.13.6",
@@ -47,6 +48,7 @@
     "loadtest": "^3.0.4",
     "merge2": "^1.2.3",
     "mocha": "^5.2.0",
+    "mongoose": "^5.4.15",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "typescript": "^3.2.1"

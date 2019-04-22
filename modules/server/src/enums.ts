@@ -10,6 +10,7 @@ export enum Method {
  */
 export enum Status {
     Ok = 200,
+    Redirect = 301,
     BadRequest = 400,
     Unauthorized = 401,
     InternalServerError = 500

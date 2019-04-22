@@ -1,6 +1,9 @@
 import { assert } from 'chai';
 import 'mocha';
-import { Dependency, Route } from '../src';
+import * as mongoose from 'mongoose';
+import { Model } from 'mongoose';
+import { Dependency, Injectable } from '../src';
+import { User, IUser, Role, IRole } from './schemas';
 
 class Animal {
     constructor(public legs: number, public arms: number) { }
@@ -18,13 +21,25 @@ class Kangaroo extends Animal {
     }
 }
 
-@Route('Zoo')
+@Injectable
+class Service {
+    constructor(public userModel: Model<IUser>, public roleModel: Model<IRole>) { }
+}
+
+
+@Injectable
 class Zoo {
     constructor(public t: Tiger, public k: Kangaroo, public a: Animal) {
     }
 }
 
 describe('{Dependency}', function() {
+    before(function (done) {
+        mongoose.connect('mongodb://localhost:27017/tboxTest', { useNewUrlParser: true })
+            .then(x => done())
+            .catch(err => done(err));
+    });
+
     it('Basic', (done) => {
         let dependency = new Dependency();
         dependency.addSingle(new Animal(7, 7));
@@ -39,5 +54,22 @@ describe('{Dependency}', function() {
         assert.equal(zoo.a.legs, 7);
         assert.equal(zoo.a.legs, 7);
         done();
+    });
+
+    it('Mongoose Models', (done) => {
+        let dependency = new Dependency();
+        dependency.addSingle(mongoose.model<IUser>('users', User));
+        dependency.addSingle(mongoose.model<IRole>('roles', Role));
+
+        // TODO: Get this working somehow
+
+        let service = dependency.resolve(Service);
+        done();
+    });
+
+    after(function(done) {
+        mongoose.disconnect()
+            .then(x => done())
+            .catch(err => done(err));
     });
 });

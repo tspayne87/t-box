@@ -3,7 +3,8 @@ import { Dependency } from './Dependency';
 import { ILogger, ConsoleLogger } from './loggers';
 import { IController } from './Controller';
 import { IInjector } from './Injector';
-import { IServiceHandler } from './interfaces';
+import { IServiceHandler, IServerConfig } from './interfaces';
+import * as isPromise from 'is-promise';
 import * as http2 from 'http2';
 import * as http from 'http';
 import * as path from 'path';
@@ -18,11 +19,15 @@ export class Application {
     /**
      * The directory that this server is currently running in and where it should look for the controllers.
      */
-    private _dir: string;
+    private _config: IServerConfig;
     /**
      * The internal server that hosts and serves up the pages.
      */
     private _server: InternalServer;
+    /**
+     * The server handler that is currently attached to the request listener.
+     */
+    private _serverHandler!: (req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse) => void;
     /**
      * The internal webserver.
      */
@@ -43,37 +48,25 @@ export class Application {
      * Determines if this application has already been bootstrapped.
      */
     private _bootStrapped: boolean;
-    /**
-     * This is a wrapper for the internal upload directory, this will be used instead of the default.
-     */
-    public get uploadDir() { return this._server.uploadDir; }
-    public set uploadDir(dir) { this._server.uploadDir = dir; }
 
     /**
      * The main server contructor to enable the configuration of modules into the server.
      * 
-     * @param dir The directory that this server should be running in.
+     * @param config The configuration object or string to configure the server.
      * @param serviceHandler The service handler object to add in dependencies on bootstrap.
      * @param logger The logger that should be used will default to a console logger.
      * @param controllerSuffix The controller suffix that should be used if not using the webpack require api.
      * @param injectorSuffix The injector suffix that should be used if not using the webpack require api.
      */
-    constructor(dir?: string, serviceHandler?: IServiceHandler, logger?: ILogger, public controllerSuffix: string = 'controller', public injectorSuffix: string = 'injector') {
+    constructor(config: string | IServerConfig, serviceHandler?: IServiceHandler, logger?: ILogger, public controllerSuffix: string = 'controller', public injectorSuffix: string = 'injector') {
+        config = typeof config === 'string' ? { cwd: config } : config;
+
         this._bootStrapped = false;
-        this._dir = dir || '';
+        this._config = <IServerConfig>config;
         this._logger = logger ? logger : new ConsoleLogger();
         this._dependency = new Dependency();
         this._serviceHandler = serviceHandler;
-        this._server = new InternalServer(this._dependency, this._dir, this._logger);
-    }
-
-    /**
-     * Method that will register static folders for the server to use.
-     * 
-     * @param folders The set of folders that should be used as static.
-     */
-    public registerStaticFolders(...folders: string[]) {
-        this._server.registerStaticLocations(...folders);
+        this._server = new InternalServer(this._dependency, this._config, this._logger);
     }
 
     /**
@@ -94,7 +87,7 @@ export class Application {
      * @param dirname The directory name that should be used instead of the current directory the server is running in.
      */
     public async registerControllers(context: string | __WebpackModuleApi.RequireContext, dirname?: string): Promise<void> {
-        let items = await this.findItems<IController>(context, dirname || this._dir, this.controllerSuffix);
+        let items = await this.findItems<IController>(context, dirname || this._config.cwd, this.controllerSuffix);
         for (let i = 0; i < items.length; ++i) {
             this._server.addControllers(items[i]);
         }
@@ -107,7 +100,7 @@ export class Application {
      * @param dirname The directory name that should be used instead of the current directory the server is running in.
      */
     public async registerInjectors(context: string | __WebpackModuleApi.RequireContext, dirname?: string): Promise<void> {
-        let items = await this.findItems<IInjector>(context, dirname || this._dir, this.injectorSuffix);
+        let items = await this.findItems<IInjector>(context, dirname || this._config.cwd, this.injectorSuffix);
         for (let i = 0; i < items.length; ++i) {
             this._server.addInjectors(items[i]);
         }
@@ -161,12 +154,25 @@ export class Application {
      * 
      * @param server The server that needs to be bound to.
      */
-    public bootstrap(server: http.Server | http2.Http2Server) {
-        server.on('request', this._server.requestListener.bind(this._server));
+    public async bootstrap(server: http.Server | http2.Http2Server) {
+        this._serverHandler = this._server.requestListener.bind(this._server);
+        server.on('request', this._serverHandler);
         if (!this._bootStrapped && this._serviceHandler !== undefined) {
-            this._serviceHandler.addServices(this._dependency);
+            let result = this._serviceHandler.addServices(this._dependency);
+            if (isPromise(result)) {
+                await result;
+            }
         }
         this._bootStrapped = true;
+    }
+
+    /**
+     * Method is meant to unbind from the server.
+     * 
+     * @param server The server that needs to be unbounded.
+     */
+    public unbind(server: http.Server | http2.Http2Server) {
+        server.removeListener('request', this._serverHandler);
     }
 
     /**

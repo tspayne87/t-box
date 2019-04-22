@@ -1,14 +1,20 @@
 # Application
 The server does most of the work in this package, it handles all the requests sent to it by the client and will process the request and call the correct controllers and injectors with the proper arguments.
 
-## Properties
+## Configuration
+### cwd: string
+The current working directory or the directory that the server is running in.
+### staticFolders: string[]
+A list of static folders that will serve up documents inside them.
 ### uploadDir: string
-The upload director that should be used instead of tmp
+The upload directory when dealing with formidable.
+### assetDir: string
+The asset directory or where the application assets will be stored.
 
 ## Methods
-### constructor(dir, serviceHandler, logger, controllerSuffix, injectorSuffix)
+### constructor(config, serviceHandler, logger, controllerSuffix, injectorSuffix)
 Constructor that will build out the server.
-- dir(optional) :: The directory the server should be running in.
+- config :: The configuration the server should be using.
 - serviceHandler(optional) :: The service handler that should add in injectable services to the dependency object.
 - logger(optional) :: The logger the server should use to print event information to.
 - controllerSuffix(optional) :: The suffix of the file that should be appended to find controllers on register. Default: 'controller'
@@ -33,6 +39,10 @@ Method is meant to register middleware components that should be called before t
 - callback :: A callback that should be called before the injected route and route is called.
 ### bootstrap(server)
 Method is meant to attach the internal server handler to a node server.
+- server :: The node server that the internal server needs to be bound to.
+### unbind(server)
+Method is meant to unbind the internal server from the node server.
+- server :: The node server the internal needs to be unbounded to.
 ### listen(args)
 Method will start the server and pass in the arguments explained at [NodeJs Documentation](https://nodejs.org/api/http.html#http_server_listen)
 ### close(callback)

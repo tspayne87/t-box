@@ -7,7 +7,7 @@ import * as isPromise from 'is-promise';
 import { IController, Controller } from '../Controller';
 import { IInjector } from '../Injector';
 import { Status } from '../enums';
-import { IInternalRoute, IInternalInjectedRoute, IRoute } from '../interfaces';
+import { IInternalRoute, IInternalInjectedRoute, IServerConfig } from '../interfaces';
 import { Result, JsonResult, AssetResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
 import { IncomingForm } from 'formidable';
@@ -18,6 +18,8 @@ import { bodyMetadataKey } from '../decorators';
 import { RouteContainer } from './RouteContainer';
 import { ServerRequestWrapper } from '../ServerRequestWrapper';
 import { ServerResponseWrapper } from '../ServerResponseWrapper';
+import { beforeCallbackMetaKey } from '../utils';
+import { IBeforeAction } from '../BeforeAction';
 
 /**
  * Internal server class that deals with the underlining http module to listen on a port for requests and process
@@ -29,9 +31,9 @@ export class InternalServer {
      */
     private _dependency: Dependency;
     /**
-     * The locations of the static folders based on their routes and folder locations.
+     * Server Configuration to change the flow of the server.
      */
-    private _staticFolders: string[][];
+    private _config: IServerConfig;
     /**
      * The routes that should be used be the server to determine which controller and method should be used.
      */
@@ -49,17 +51,9 @@ export class InternalServer {
      */
     private _logger: ILogger;
     /**
-     * The current directory that the server is running in.
-     */
-    private _dir: string;
-    /**
      * The list of middleware callbacks that need to be included before the found injected routes and route.
      */
     private _middlewareCallbacks: ((req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse, next: (err?: any) => void) => void)[];
-    /**
-     * The upload directory that should be used for formidable.
-     */
-    public uploadDir: string;
 
     /**
      * Constructor method that will build out a basic internal server.
@@ -68,16 +62,14 @@ export class InternalServer {
      * @param dir The directory that the server should be running in.
      * @param logger The custom logger that should be used to get information as the server runs.
      */
-    constructor(dependency: Dependency, dir?: string, logger?: ILogger) {
-        this._dir = dir || '';
+    constructor(dependency: Dependency, config: IServerConfig, logger?: ILogger) {
+        this._config = config;
         this._middlewareCallbacks = [];
         this._dependency = dependency;
         this._faviconRegex = /favicon\.icon$/;
         this._injectedRoutes = new RouteContainer<IInternalInjectedRoute>();
         this._routes = new RouteContainer<IInternalRoute>();
-        this._staticFolders = [];
         this._logger = logger ? logger : new ConsoleLogger();
-        this.uploadDir = '';
     }
 
     /**
@@ -108,15 +100,6 @@ export class InternalServer {
                 route.injector = injectors[i];
             }
         }
-    }
-
-    /**
-     * Method is meant to register static folder locations.
-     * 
-     * @param folders The static folders that need to be added to the server.
-     */
-    public registerStaticLocations(...folders: string[]) {
-        this._staticFolders = this._staticFolders.concat(folders.map(x => x.split('/')));
     }
 
     /**
@@ -191,8 +174,8 @@ export class InternalServer {
      */
     private getStaticResult(parsedUrl: url.UrlWithParsedQuery): Result {
         let currentPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? '' : parsedUrl.pathname;
-        let fullPath = path.join(this._dir, currentPath);
-        return new AssetResult(fullPath);
+        let fullPath = path.join(this._config.cwd, currentPath);
+        return new AssetResult(fullPath, true);
     }
 
     /**
@@ -202,12 +185,17 @@ export class InternalServer {
      */
     private isStaticResource(parsedUrl: url.UrlWithParsedQuery) {
         let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
-        for (let i = 0; i < this._staticFolders.length; ++i) {
-            let isStaticResource = true;
-            for (let j = 0; j < this._staticFolders[i].length && isStaticResource; ++j) {
-                isStaticResource = isStaticResource && this._staticFolders[i][j] === splitPath[j];
+        let isStaticResource = true;
+        if (this._config.staticFolders !== undefined && this._config.staticFolders.length > 0) {
+            for (let i = 0; i < this._config.staticFolders.length; ++i) {
+                let splitStatic = this._config.staticFolders[i].split('/');
+
+                let isStaticResource = true;
+                for (let j = 0; j < splitStatic.length && isStaticResource; ++j) {
+                    isStaticResource = isStaticResource && splitStatic[j] === splitPath[j];
+                }
+                if (isStaticResource) return true;
             }
-            if (isStaticResource) return true;
         }
         return false;
     }
@@ -237,8 +225,8 @@ export class InternalServer {
             if (this.isStaticResource(parsedUrl)) {
                 response = this.getStaticResult(parsedUrl);
             } else if (this.isFavicon(parsedUrl)) {
-                let fullPath = path.join(this._dir, 'favicon.ico');
-                response = new AssetResult(fullPath);
+                let fullPath = path.join(this._config.cwd, 'favicon.ico');
+                response = new AssetResult(fullPath, true);
             } else {
                 let routes = this._routes.find(parsedUrl, req.method || '');
                 let injectors = this._injectedRoutes.find(parsedUrl, req.method || '');
@@ -261,11 +249,12 @@ export class InternalServer {
         } catch (err) {
             this._logger.error(err);
             response.status = Status.InternalServerError;
-            response.body = { message: 'Internal Server Error' };
+            response.data = { message: 'Internal Server Error' };
         } finally {
             try {
-                await response.processResponse(res);
+                await response.processResponse(req, res, this._config);
             } catch (err) {
+                console.log('Made it here');
                 this._logger.error(err);
                 this.sendError(req, res);
             }
@@ -333,17 +322,49 @@ export class InternalServer {
      */
     private processRoute(route: IInternalRoute, parsedUrl: url.UrlWithParsedQuery, dependency: Dependency, body: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            let controller = dependency.resolve(route.controller);
-            controller._dirname = this._dir;
+            this.processBeforeRoute(route, dependency)
+                .then(x => {
+                    let controller = <any>dependency.resolve(route.controller);
+                    controller._dirname = this._config.cwd;
 
-            let response = controller[route.key].apply(controller, this.processArguments(route, body, parsedUrl, controller));
-            if (isPromise(response)) {
-                response
-                    .then(x => resolve(x))
-                    .catch(err => reject(err));
-            } else {
-                resolve(response);
-            }
+                    if (x !== undefined) return resolve(x);
+                    let response = controller[route.key].apply(controller, this.processArguments(route, body, parsedUrl, controller));
+                    if (isPromise(response)) {
+                        response
+                            .then(x => resolve(x))
+                            .catch(err => reject(err));
+                    } else {
+                        resolve(response);
+                    }
+                })
+                .catch(err => resolve(err));
+        });
+    }
+
+    private processBeforeRoute(route: IInternalRoute, dependency: Dependency) {
+        return new Promise<Result | undefined>((resolve, reject) => {
+            let callbacks: IBeforeAction[] = Reflect.getOwnMetadata(beforeCallbackMetaKey, route.target, route.key) || [];
+            let iterator = (index, result?: Result) => {
+                if (result !== undefined && !(result instanceof Result)) {
+                    this._logger.info('Before decorator callback needs to return an instance of the Result class');
+                    result = undefined;
+                }
+
+                if (index > callbacks.length || result !== undefined) {
+                    resolve(result);
+                } else {
+                    let action = dependency.resolve(callbacks[index - 1]);
+                    let response = action.beforeRequest();
+                    if (response instanceof Promise) {
+                        response
+                            .then(x => iterator(++index, x))
+                            .catch(err => reject(err));
+                    } else {
+                        iterator(++index, response);
+                    }
+                }
+            };
+            iterator(1);
         });
     }
 
@@ -378,8 +399,8 @@ export class InternalServer {
         return new Promise<IFormModel>((resolve, reject) => {
             let form = new IncomingForm();
             let result: any = {};
-            if (this.uploadDir.length > 0) {
-                form.uploadDir = this.uploadDir;
+            if (this._config.uploadDir !== undefined && this._config.uploadDir.length > 0) {
+                form.uploadDir = this._config.uploadDir;
             }
             form.parse(req, (err, fields, files) => {
                 if (err) return reject(err);
@@ -429,8 +450,8 @@ export class InternalServer {
     private async sendError(req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse) {
         let response = new JsonResult();
         response.status = Status.InternalServerError;
-        response.body = { message: 'Internal Server Error' };
-        await response.processResponse(res);
+        response.data = { message: 'Internal Server Error' };
+        await response.processResponse(req, res, this._config);
     }
     //#endregion
     //#endregion

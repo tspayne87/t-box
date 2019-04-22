@@ -69,7 +69,9 @@ export class RouteContainer<T extends IRoute> {
                 let key = splitPath[i];
                 let next = leaf.children[key];
                 if (next === undefined && parameterLeaf !== undefined) {
-                    if (parameterLeaf.children[key] !== undefined) {
+                    if (leaf.children[this._paramKey] !== undefined) {
+                        next = parameterLeaf.children[this._paramKey];
+                    } else if (parameterLeaf.children[key] !== undefined) {
                         next = parameterLeaf.children[key];
                     } else {
                         leaf = { children: {}, routes: [] };

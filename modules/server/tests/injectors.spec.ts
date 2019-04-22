@@ -12,7 +12,7 @@ describe('{Injection}:/user', function() {
     let port = 8000;
 
     let http = new Http();
-    let server = new InternalServer(new Dependency());
+    let server = new InternalServer(new Dependency(), { cwd: __dirname });
     server.addControllers(<any>UserController);
     server.addInjectors(<any>UserInjection);
 

@@ -1,5 +1,6 @@
+import 'reflect-metadata';
+import { getParamNames, routesMetaKey } from '../utils';
 let rootRegex = /^\//;
-let fileRegex = /\((.*):\d+:\d+\)/;
 
 /**
  * Attribute for controllers to give the controller route information that will be used by the server.
@@ -16,9 +17,10 @@ export function Route(path?: string): any {
             public static generateRoutes() {
                 // Add in the routes to the class
                 let routes: any[] = [];
-                if (target.__routes__ !== undefined) {
-                    for (let i = 0; i < target.__routes__.length; ++i) {
-                        let route = Object.assign({}, target.__routes__[i]);
+                let internalRoutes: any[] | undefined = Reflect.getOwnMetadata(routesMetaKey, target);
+                if (internalRoutes !== undefined) {
+                    for (let i = 0; i < internalRoutes.length; ++i) {
+                        let route = Object.assign({}, internalRoutes[i]);
                         if (rootRegex.test(route.path)) {
                             route.path = route.path.substr(1);
                         } else {
@@ -29,6 +31,7 @@ export function Route(path?: string): any {
                                 if (route.path.length === 0) throw new Error(message);
                             }
                         }
+                        route.target = target;
                         route.splitPath = route.path.split('/');
                         route.location = ctor.filePath;
                         routes.push(route);

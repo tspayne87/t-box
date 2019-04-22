@@ -1,0 +1,2 @@
+Create a way to map data down to a minified version from server to client so that data is scrambled
+based on the types being set and will decrease the amount of data being transfered between client and server.
