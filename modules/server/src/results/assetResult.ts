@@ -1,6 +1,6 @@
 import { Result } from './result';
-import { Http2ServerResponse } from 'http2';
-import { ServerResponse } from 'http';
+import { Http2ServerResponse, Http2ServerRequest } from 'http2';
+import { ServerResponse, IncomingMessage } from 'http';
 import { IServerConfig } from '../interfaces';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -70,12 +70,12 @@ export class AssetResult extends Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public async processResponse(res: Http2ServerResponse | ServerResponse, config: IServerConfig) {
+    public async processResponse(req: IncomingMessage | Http2ServerRequest, res: Http2ServerResponse | ServerResponse, config: IServerConfig) {
         if (await this.fileExists(config)) {
-            this.headers['Content-Type'] = this.getContentType();
-            this.body = await this.readFile(config);
+            this.configureHeaders();
+            this.body = this.createStream(config);
         }
-        super.processResponse(res, config);
+        super.processResponse(req, res, config);
     }
 
     /**
@@ -96,13 +96,8 @@ export class AssetResult extends Result {
      * 
      * @param dirname The directory that needs to be searched in.
      */
-    private readFile(config: IServerConfig): Promise<Buffer> {
-        return new Promise<Buffer>((resolve, reject) => {
-            fs.readFile(this._fullPath ? this._asset : path.join(config.cwd, config.assetDir || '', this._asset), (err, buf) => {
-                if (err) return reject(err);
-                resolve(buf);
-            });
-        });
+    private createStream(config: IServerConfig): fs.ReadStream {
+        return fs.createReadStream(this._fullPath ? this._asset : path.join(config.cwd, config.assetDir || '', this._asset));
     }
 
     /**
@@ -110,23 +105,27 @@ export class AssetResult extends Result {
      * 
      * @param dirname The directory that needs to be searched in.
      */
-    private getContentType(): string {
+    private configureHeaders() {
+        let contentType = 'application/octet-stream';
         if (this._jsRegex.test(this._asset)) {
-            return 'application/javascript';
+            this.encode = true;
+            contentType = 'application/javascript';
         } else if (this._cssRegex.test(this._asset)) {
-            return 'text/css';
+            this.encode = true;
+            contentType = 'text/css';
         } else if (this._woff2.test(this._asset)) {
-            return 'font/woff2';
+            contentType = 'font/woff2';
         } else if (this._woff.test(this._asset)) {
-            return 'font/woff';
+            contentType = 'font/woff';
         } else if (this._html.test(this._asset)) {
-            return 'text/html';
+            this.encode = true;
+            contentType = 'text/html';
         } else if (this._png.test(this._asset)) {
-            return 'image/png';
+            contentType = 'image/png';
         } else if (this._svg.test(this._asset)) {
-            return 'image/svg+xml';
-        } else {
-            return 'application/octet-stream';
+            contentType = 'image/svg+xml';
         }
+
+        this.headers['Content-Type'] = contentType;
     }
 }

@@ -1,6 +1,6 @@
 import { Result } from './result';
-import { Http2ServerResponse } from 'http2';
-import { ServerResponse } from 'http';
+import { Http2ServerResponse, Http2ServerRequest } from 'http2';
+import { ServerResponse, IncomingMessage } from 'http';
 import { Status } from '../enums';
 import { IServerConfig } from '../interfaces';
 
@@ -20,9 +20,9 @@ export class RedirectResult extends Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public async processResponse(res: Http2ServerResponse | ServerResponse, config: IServerConfig) {
+    public async processResponse(req: IncomingMessage | Http2ServerRequest, res: Http2ServerResponse | ServerResponse, config: IServerConfig) {
         this.status = Status.Redirect;
         this.headers['Location'] = this._url;
-        super.processResponse(res, config);
+        return super.processResponse(req, res, config);
     }
 }

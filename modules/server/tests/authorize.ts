@@ -10,7 +10,7 @@ export function Authorize(...perms: string[]) {
         public beforeRequest(): Result | Promise<Result | undefined> | undefined {
             let result = new JsonResult();
             result.status = Status.Unauthorized;
-            result.body = { message: 'Unauthorized Attribute' };
+            result.data = { message: 'Unauthorized Attribute' };
             return result;
         }
     }

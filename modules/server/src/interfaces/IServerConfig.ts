@@ -15,4 +15,8 @@ export interface IServerConfig {
      * This the current working directory that this server is running in.
      */
     cwd: string;
+    /**
+     * Determine if we should compress the results from the server.
+     */
+    compress?: boolean;
 }

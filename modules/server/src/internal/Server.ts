@@ -249,11 +249,12 @@ export class InternalServer {
         } catch (err) {
             this._logger.error(err);
             response.status = Status.InternalServerError;
-            response.body = { message: 'Internal Server Error' };
+            response.data = { message: 'Internal Server Error' };
         } finally {
             try {
-                await response.processResponse(res, this._config);
+                await response.processResponse(req, res, this._config);
             } catch (err) {
+                console.log('Made it here');
                 this._logger.error(err);
                 this.sendError(req, res);
             }
@@ -449,8 +450,8 @@ export class InternalServer {
     private async sendError(req: http.IncomingMessage | http2.Http2ServerRequest, res: http.ServerResponse | http2.Http2ServerResponse) {
         let response = new JsonResult();
         response.status = Status.InternalServerError;
-        response.body = { message: 'Internal Server Error' };
-        await response.processResponse(res, this._config);
+        response.data = { message: 'Internal Server Error' };
+        await response.processResponse(req, res, this._config);
     }
     //#endregion
     //#endregion

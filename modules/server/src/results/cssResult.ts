@@ -1,7 +1,8 @@
 import { Result } from './result';
-import { Http2ServerResponse } from 'http2';
-import { ServerResponse } from 'http';
+import { Http2ServerResponse, Http2ServerRequest } from 'http2';
+import { ServerResponse, IncomingMessage } from 'http';
 import { IServerConfig } from '../interfaces';
+import { Readable } from 'stream';
 
 /**
  * A result that handles an css string.
@@ -14,7 +15,13 @@ export class CssResult extends Result {
      */
     constructor(css?: string) {
         super();
-        this.body = css;
+
+        if (css !== undefined) {
+            let stream = new Readable();
+            stream.push(css);
+            stream.push(null);
+            this.body = stream;
+        }
     }
 
     /**
@@ -22,8 +29,8 @@ export class CssResult extends Result {
      * 
      * @param res The server response object that we need to work with when processing this result.
      */
-    public async processResponse(res: Http2ServerResponse | ServerResponse, config: IServerConfig) {
+    public async processResponse(req: IncomingMessage | Http2ServerRequest, res: Http2ServerResponse | ServerResponse, config: IServerConfig) {
         this.headers['Content-Type'] = 'text/css';
-        super.processResponse(res, config);
+        super.processResponse(req, res, config);
     }
 }

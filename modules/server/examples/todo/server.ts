@@ -1,14 +1,11 @@
 import { Application } from '../../src';
 import { ServiceHandler } from './services/ServiceHandler';
-import * as http2 from 'http2';
+import * as http2 from 'http';
 import * as fs from 'fs';
 
-let server = http2.createSecureServer({
-    key: fs.readFileSync('../../certs/localhost-privkey.pem'),
-    cert: fs.readFileSync('../../certs/localhost-cert.pem')
-});
+let server = http2.createServer();
 
-let app = new Application(__dirname, new ServiceHandler());
+let app = new Application({ cwd: __dirname, assetDir: 'assets', staticFolders: ['public'], compress: true }, new ServiceHandler());
 async function boot() {
     await app.register('controllers');
     app.bootstrap(server);

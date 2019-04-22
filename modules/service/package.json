@@ -20,6 +20,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@t-box/specification": "0.0.3",
     "mongoose": "^5.5.2"
   },
   "devDependencies": {

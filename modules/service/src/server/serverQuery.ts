@@ -1,9 +1,8 @@
+import { Specification } from '@t-box/specification';
 import * as mongoose from 'mongoose';
 import { IQuery } from '../query';
 import { Model } from '../model';
 import { ModelHelper } from './modelHelper';
-
-import { schemaMetaKey, fieldMetaKey, IFieldMetadata } from '../decorators';
 
 export class ServerQuery<T extends Model> implements IQuery<T> {
     private _query: mongoose.Query<any>;
@@ -29,7 +28,16 @@ export class ServerQuery<T extends Model> implements IQuery<T> {
     }
 
     public where(): IQuery<T> {
-        this._query = this._query.where('');
+        if (arguments.length === 1) {
+            let spec = arguments[0];
+            if (!(arguments[0] instanceof Specification)) {
+                spec = new Specification<T>(arguments[0]);
+            }
+            this._query = this._query.where(spec.query());
+        } else if (arguments.length === 2) {
+            let spec = new Specification<T>(arguments[0], arguments[1]);
+            this._query = this._query.where(spec.query());
+        }
         return this;
     }
 
