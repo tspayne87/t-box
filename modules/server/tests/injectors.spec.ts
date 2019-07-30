@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import 'mocha';
 import { InternalServer } from '../src/internal';
-import { Dependency } from '../src/Dependency';
+import { Dependency } from '../src/dependency';
 import { UserController } from './controllers/user.controller';
 import { UserInjection } from './injectors/user.injector';
 import * as httpModule from 'http';

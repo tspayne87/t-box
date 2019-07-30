@@ -1,5 +1,5 @@
 import { Fields } from 'formidable';
-import { FileContainer } from './UploadFile';
+import { FileContainer } from '../internal/uploadFile';
 
 /**
  * Form model that will handle the object that stores the fields and files for formidable.

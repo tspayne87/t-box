@@ -1,3 +1,2 @@
-export { InternalServer } from './Server';
-export { IFormModel } from './IFormModel';
-export { UploadFile, FileContainer } from './UploadFile';
+export { InternalServer } from './server';
+export { UploadFile, FileContainer } from './uploadFile';

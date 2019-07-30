@@ -1,4 +1,4 @@
-import { ILogger } from './ILogger';
+import { ILogger } from '../interfaces/ILogger';
 
 /**
  * Basic console logger.

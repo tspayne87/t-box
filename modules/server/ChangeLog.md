@@ -1,3 +1,8 @@
+0.4.0 / 2019-07-29
+===================
+
+  * Bug Fix: Fixed bug to deal with issues around dependencies
+
 0.3.9 / 2019-03-16
 ===================
 

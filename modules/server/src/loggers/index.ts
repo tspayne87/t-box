@@ -1,2 +1,2 @@
-export { ILogger } from './ILogger';
-export { ConsoleLogger } from './ConsoleLogger';
+export { ILogger } from '../interfaces';
+export { ConsoleLogger } from './consoleLogger';

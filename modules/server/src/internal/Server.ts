@@ -4,22 +4,20 @@ import * as http from 'http';
 import * as path from 'path';
 import * as url from 'url';
 import * as isPromise from 'is-promise';
-import { IController, Controller } from '../Controller';
-import { IInjector } from '../Injector';
+import { IController, Controller } from '../controller';
+import { IInjector, Injector } from '../Injector';
 import { Status } from '../enums';
-import { IInternalRoute, IInternalInjectedRoute, IServerConfig } from '../interfaces';
+import { IInternalRoute, IInternalInjectedRoute, IServerConfig, IFormModel, IActionCtor, IAction } from '../interfaces';
 import { Result, JsonResult, AssetResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
 import { IncomingForm } from 'formidable';
-import { IFormModel } from './IFormModel';
-import { FileContainer, UploadFile } from './UploadFile';
-import { Dependency } from '../Dependency';
+import { FileContainer, UploadFile } from './uploadFile';
+import { Dependency } from '../dependency';
 import { bodyMetadataKey } from '../decorators';
-import { RouteContainer } from './RouteContainer';
-import { ServerRequestWrapper } from '../ServerRequestWrapper';
-import { ServerResponseWrapper } from '../ServerResponseWrapper';
+import { RouteContainer } from './routeContainer';
+import { ServerRequestWrapper } from '../serverRequestWrapper';
+import { ServerResponseWrapper } from '../serverResponseWrapper';
 import { beforeCallbackMetaKey } from '../utils';
-import { IBeforeAction } from '../BeforeAction';
 
 /**
  * Internal server class that deals with the underlining http module to listen on a port for requests and process
@@ -326,7 +324,7 @@ export class InternalServer {
         return new Promise<any>((resolve, reject) => {
             this.processBeforeRoute(route, dependency)
                 .then(x => {
-                    let controller = <any>dependency.resolve(route.controller);
+                    let controller = dependency.resolve<Controller>(route.controller);
                     controller._dirname = this._config.cwd;
 
                     if (x !== undefined) return resolve(x);
@@ -345,7 +343,7 @@ export class InternalServer {
 
     private processBeforeRoute(route: IInternalRoute, dependency: Dependency) {
         return new Promise<Result | undefined>((resolve, reject) => {
-            let callbacks: IBeforeAction[] = Reflect.getOwnMetadata(beforeCallbackMetaKey, route.target, route.key) || [];
+            let callbacks: IActionCtor[] = Reflect.getOwnMetadata(beforeCallbackMetaKey, route.target, route.key) || [];
             let iterator = (index, result?: Result) => {
                 if (result !== undefined && !(result instanceof Result)) {
                     this._logger.info('Before decorator callback needs to return an instance of the Result class');
@@ -355,8 +353,8 @@ export class InternalServer {
                 if (index > callbacks.length || result !== undefined) {
                     resolve(result);
                 } else {
-                    let action = dependency.resolve(callbacks[index - 1]);
-                    let response = action.beforeRequest();
+                    let action = dependency.resolve<IAction>(callbacks[index - 1]);
+                    let response = action.processAction();
                     if (response instanceof Promise) {
                         response
                             .then(x => iterator(++index, x))
@@ -380,7 +378,7 @@ export class InternalServer {
      */
     private processInjector(injectedRoute: IInternalInjectedRoute, parsedUrl: url.UrlWithParsedQuery, dependency: Dependency, body: any, result: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            let injector = dependency.resolve(injectedRoute.injector);
+            let injector = dependency.resolve<Injector>(injectedRoute.injector);
             let response = injector[injectedRoute.key].call(injector, result);
             if (isPromise(response)) {
                 response

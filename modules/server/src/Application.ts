@@ -1,7 +1,7 @@
 import { InternalServer } from './internal';
-import { Dependency } from './Dependency';
+import { Dependency } from './dependency';
 import { ILogger, ConsoleLogger } from './loggers';
-import { IController } from './Controller';
+import { IController } from './controller';
 import { IInjector } from './Injector';
 import { IServiceHandler, IServerConfig } from './interfaces';
 import * as isPromise from 'is-promise';
