@@ -36,13 +36,13 @@ todo.controller.ts
             return this._service.todos.filter(x => term === undefined || term.length === 0 || x.name.startsWith(term));
         }
 
-        @Get('{id}')
+        @Get('{0}')
         public get(id: number) {
             let found = this._service.todos.filter(x => x.id === id);
             return found.length > 0 ? found[0] : null;
         }
 
-        @Post('{id}/[action]')
+        @Post('{0}/[action]')
         public done(id: number) {
             let found = this._service.todos.filter(x => x.id === id);
             if (found.length > 0) {
@@ -64,7 +64,7 @@ todo.controller.ts
             }
         }
 
-        @Delete('{id}')
+        @Delete('{0}')
         public remove(id: number) {
             return this._service.remove(id);
         }

@@ -25,7 +25,7 @@ export function createRouteDecorator(method: Method): (path?: string) => (target
         return (target: any, key: string, descriptor: TypedPropertyDescriptor<any>) => {
             const Ctor = target.constructor;
             let existingRoutes: any[] = Reflect.getOwnMetadata(routesMetaKey, Ctor) || [];
-            existingRoutes.push({ method: method, path: path, key: key, params: getParamNames(descriptor.value) });
+            existingRoutes.push({ method: method, path: path, key: key });
             Reflect.defineMetadata(routesMetaKey, existingRoutes, Ctor);
         };
     };
@@ -43,16 +43,4 @@ export function createBeforeActionDecorator(action: IActionCtor): (target: any, 
         existingBeforeCallbacks.push(action);
         Reflect.defineMetadata(beforeCallbackMetaKey, existingBeforeCallbacks, Ctor, key);
     };
-}
-
-// Following is gathered from: https://stackoverflow.com/questions/1007981/how-to-get-function-parameter-names-values-dynamically
-const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-const ARGUMENT_NAMES = /([^\s,]+)/g;
-export function getParamNames(func: Function): string[] {
-    if (func === undefined) return [];
-    let fnStr = func.toString().replace(STRIP_COMMENTS, '');
-    let result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
-    if (result === null)
-        result = [];
-    return result;
 }

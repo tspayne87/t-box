@@ -13,7 +13,7 @@ import { ILogger, ConsoleLogger } from '../loggers';
 import { IncomingForm } from 'formidable';
 import { FileContainer, UploadFile } from './uploadFile';
 import { Dependency } from '../dependency';
-import { bodyMetadataKey } from '../decorators';
+import { bodyMetadataKey, queryMetaDataKey } from '../decorators';
 import { RouteContainer } from './routeContainer';
 import { ServerRequestWrapper } from '../serverRequestWrapper';
 import { ServerResponseWrapper } from '../serverResponseWrapper';
@@ -269,47 +269,37 @@ export class InternalServer {
      * @param parsedUrl The parsed url with the query parameters parsed.
      */
     private processArguments(route: IInternalRoute, body: any, parsedUrl: url.UrlWithParsedQuery, controller: Controller): any[] {
-        if (route.params.length === 0) return []; // If no parameters were found on the route we do not need to process anything.
+        let argTypes = Reflect.getMetadata('design:paramtypes', controller, route.key) as any[];
+        if (argTypes === undefined || argTypes.length === 0) return [];
+        let params = argTypes.map(x => null) as any[];
 
         // We need to iterate over the url and get the data elements from the url to be parsed properly.
         let splitPath = parsedUrl.pathname === undefined || parsedUrl.pathname === null ? [] : parsedUrl.pathname.split('/');
-        let fromRoute: { [key: string]: string } = {};
         for (let i = 0; i < splitPath.length; ++i) {
             let matches = route.splitPath[i].match(this._routes.paramRegex);
             if (matches !== null) {
-                fromRoute[matches[1]] = splitPath[i];
+                let argIndex = parseInt(matches[1]);
+                params[argIndex] = this.processArgument(argTypes[argIndex], splitPath[i]);
             }
         }
 
-        // Create the argument array that will be used when parsing the route.
-        let argTypes = Reflect.getMetadata('design:paramtypes', controller, route.key);
-        let bodyTypes = <number[]>Reflect.getMetadata(bodyMetadataKey, controller, route.key);
-        let args: any[] = [];
-        for (let i = 0; i < route.params.length; ++i) {
-            if (bodyTypes !== undefined && bodyTypes.indexOf(i) > -1) {
-                // We need to process the body attribute for the arguments.
-                args.push(this.processArgument(argTypes[i], body));
-                continue;
-            }
-
-            let param = parsedUrl.query[route.params[i]];
-            if (param !== undefined) {
-                if (Array.isArray(param)) {
-                    let list: any[] = [];
-                    for (let j = 0; j < param.length; ++j) {
-                        list.push(this.processArgument(argTypes[i], param[j]));
-                    }
-                    args.push(list);
-                } else {
-                    args.push(this.processArgument(argTypes[i], param));
-                }
-            } else if (body && fromRoute[route.params[i]] === undefined) {
-                args.push(this.processArgument(argTypes[i], body[route.params[i]]));
-            } else {
-                args.push(this.processArgument(argTypes[i], fromRoute[route.params[i]]));
+        // Deal with Body Types
+        let bodyTypes = Reflect.getMetadata(bodyMetadataKey, controller, route.key) as number[];
+        if (bodyTypes !== undefined && bodyTypes.length > 0) {
+            for (let i = 0; i < bodyTypes.length; ++i) {
+                params[bodyTypes[i]] = this.processArgument(argTypes[bodyTypes[i]], body);
             }
         }
-        return args;
+
+        // Deal with Query Types
+        let queryTypes = Reflect.getMetadata(queryMetaDataKey, controller, route.key) as { name: string, index: number }[];
+        if (queryTypes !== undefined && queryTypes.length > 0) {
+            for (let i = 0; i < queryTypes.length; ++i) {
+                params[queryTypes[i].index] = this.processArgument(argTypes[queryTypes[i].index], parsedUrl.query[queryTypes[i].name]);
+            }
+        }
+
+        return params;
     }
 
     /**
@@ -427,16 +417,16 @@ export class InternalServer {
      * @param type The type of method for the argument.
      * @param value The current value that needs to be passed to that argument.
      */
-    private processArgument(type: any, value: string) {
+    private processArgument(type: any, value: string | string[]) {
         switch (type) {
             case Number:
-                return parseFloat(value);
+                return Array.isArray(value) ? value.map(x => parseFloat(x)) : parseFloat(value);
             case String:
-                return value;
+                return Array.isArray(value) ? value.map(x => x.toString()) : value.toString();
             case Boolean:
-                return value === '1' || value === 'true';
+                return Array.isArray(value) ? value.map(x => x === '1' || x === 'true') : (value === '1' || value === 'true');
         }
-        return new type(value);
+        return Array.isArray(value) ? value.map(x => new type(x)) : new type(value);
     }
     //#endregion
 

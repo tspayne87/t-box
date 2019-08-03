@@ -1,4 +1,4 @@
-import { getParamNames, routesMetaKey } from '../utils';
+import { routesMetaKey } from '../utils';
 
 /**
  * Attribute for injectors to give the controller route information that will be used by the server.

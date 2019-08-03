@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { getParamNames, routesMetaKey } from '../utils';
+import { routesMetaKey } from '../utils';
 let rootRegex = /^\//;
 
 /**

@@ -1,3 +1,10 @@
+0.4.2 / 2019-08-03
+===================
+
+  * Breaking Change: Named route parameters have been replaced with parameter index based control, this was changed due to not a good way around Uglifying a file and it loosing its reference.
+  * Breaking Change: Query parameters and Body automatic injectors are now longer allowed due to uglifying the files.
+  * Added: Query: Decorator added to help getting data from the query since argument names do not work with uglifying.
+
 0.4.1 / 2019-07-31
 ===================
 

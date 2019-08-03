@@ -167,6 +167,36 @@ Example:
     }
 ```
 
+## Query
+Decorator to handle parameters on a controller that need to be populated with query parameters on the request
+Example:
+```typescript
+    import { Controller,  Post, Body } from '@t-box/server';
+
+    interface ITodo {
+        id: number;
+        name: string;
+        done: boolean;
+    }
+
+    @Route('todo')
+    export class TodoController extends Controller {
+        @Get()
+        public save(id: number, @Query('todo') todo: string) {
+            let found = this._tasks.filter(x => x.id === id);
+            if (found.length > 0) {
+                found[0].done = todo.done;
+                found[0].name = todo.name;
+                return found[0];
+            } else {
+                todo.id = ++this._id;
+                this._tasks.push(todo);
+                return todo;
+            }
+        }
+    }
+```
+
 ## Custom Before Callbacks
 You can create custom callbacks that can be used before routes, this can be used for authorize attributes for an app or any other types of attributes that need to be called before a method.  A result object can be returned if you want to end the request without going to the route method, however if nothing is returned it will continue on as if the attribute was never added to the route.
 Example:

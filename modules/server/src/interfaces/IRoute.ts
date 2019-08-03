@@ -17,10 +17,6 @@ export interface IRoute {
      */
     key: string;
     /**
-     * The parameters of the method that needs to be parsed.
-     */
-    params: string[];
-    /**
      * Helper property that will break the path up based on the /'s.
      */
     splitPath: string[];

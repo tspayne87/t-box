@@ -7,3 +7,4 @@ export { Body, bodyMetadataKey } from './body';
 export { Injectable } from './injectable';
 export { Inject } from './inject';
 export { BeforeAction } from './beforeAction';
+export { Query, queryMetaDataKey } from './query';

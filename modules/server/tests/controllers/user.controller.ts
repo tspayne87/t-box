@@ -1,4 +1,4 @@
-import { Route, Get, Post, Delete, Controller, AssetResult, Body, FileContainer } from '../../src';
+import { Route, Get, Post, Delete, Controller, AssetResult, Body, FileContainer, Query } from '../../src';
 import * as path from 'path';
 import { Authorize } from '../authorize';
 
@@ -21,7 +21,7 @@ export class UserController extends Controller {
         return 'index.html';
     }
 
-    @Get('[action]/{token}')
+    @Get('[action]/{0}')
     public getToken(token: string) {
         return `special-${token}`;
     }
@@ -31,8 +31,8 @@ export class UserController extends Controller {
         return 'all-user';
     }
 
-    @Get('/test/args/{id}')
-    public testArgs(id: string, testBoolean?: boolean, testNumber?: number, testString?: string, testDate?: Date, testMixed?: boolean | number | string) {
+    @Get('/test/args/{0}')
+    public testArgs(id: string, @Query('testBoolean') testBoolean?: boolean, @Query('testNumber') testNumber?: number, @Query('testString') testString?: string, @Query('testDate') testDate?: Date, @Query('testMixed') testMixed?: boolean | number | string) {
         return { id, testBoolean, testNumber, testString, testDate, testMixed };
     }
 
@@ -64,23 +64,23 @@ export class UserController extends Controller {
         return this.data;
     }
 
-    @Get('{id}')
+    @Get('{0}')
     public getUser(id: string): string {
         return id;
     }
 
-    @Get('{id}/path')
+    @Get('{0}/path')
     public testPath(id: string): string {
         return `${id}-path`;
     }
 
     @Authorize()
-    @Get('{id}/before/callback')
+    @Get('{0}/before/callback')
     public beforeCallbackCheck(id: string): string {
         return 'Hello World';
     }
 
-    @Get('{id}/redirect')
+    @Get('{0}/redirect')
     public testRedirect(id: string) {
         return this.redirect(`${id}/before/callback`);
     }
@@ -90,7 +90,7 @@ export class UserController extends Controller {
         return user;
     }
 
-    @Delete('{id}')
+    @Delete('{0}')
     public deleteUser(id: string): boolean {
         return id !== undefined;
     }
