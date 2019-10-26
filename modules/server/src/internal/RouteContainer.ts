@@ -105,6 +105,10 @@ export class RouteContainer<T extends IRoute> {
                 return possibleRoutes.filter(x => x.method === Method.Post);
             case 'DELETE':
                 return possibleRoutes.filter(x => x.method === Method.Delete);
+            case 'PUT':
+                return possibleRoutes.filter(x => x.method === Method.Put);
+            case 'PATCH':
+                return possibleRoutes.filter(x => x.method === Method.Patch);
         }
         return possibleRoutes;
     }

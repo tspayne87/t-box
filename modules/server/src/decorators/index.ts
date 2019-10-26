@@ -2,6 +2,8 @@ export { Route } from './route';
 export { Get } from './get';
 export { Post } from './post';
 export { Delete } from './delete';
+export { Put } from './put';
+export { Patch } from './patch';
 export { InjectedRoute } from './injectedRoute';
 export { Body, bodyMetadataKey } from './body';
 export { Injectable } from './injectable';

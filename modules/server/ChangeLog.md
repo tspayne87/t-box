@@ -1,5 +1,10 @@
 0.4.2 / 2019-08-03
 ===================
+  * Added: Put: Decorator to add more variety for RESTfull API's
+  * Added: Patch: Decorator to add more variety for RESTfull API's
+
+0.4.2 / 2019-08-03
+===================
 
   * Breaking Change: Named route parameters have been replaced with parameter index based control, this was changed due to not a good way around Uglifying a file and it loosing its reference.
   * Breaking Change: Query parameters and Body automatic injectors are now longer allowed due to uglifying the files.

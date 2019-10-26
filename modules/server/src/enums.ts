@@ -2,7 +2,7 @@
  * Enum that handles all the different HTTP requests that can be used in the system.
  */
 export enum Method {
-    Get, Post, Delete
+    Get, Post, Delete, Put, Patch
 }
 
 /**
