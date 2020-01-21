@@ -1,3 +1,7 @@
+0.4.3 / 2020-01-20
+===================
+  * Modify: Moving express to a dev dependency
+
 0.4.2 / 2019-08-03
 ===================
   * Added: Put: Decorator to add more variety for RESTfull API's
