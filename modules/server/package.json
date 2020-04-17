@@ -1,6 +1,6 @@
 {
   "name": "@t-box/server",
-  "version": "0.4.4",
+  "version": "0.4.6",
   "description": "A simple NodeJs server that uses controllers for routes.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -18,7 +18,6 @@
     "large:stress": "loadtest -c 100 --rps 10000 -n 1000000 http://localhost:8080/todo",
     "huge:stress": "loadtest -c 1000 --rps 100000 -n 1000000 http://localhost:8080/todo",
     "build": "gulp build",
-
     "start:tbox:hello": "cd compareExpress && ts-node tbox.ts",
     "start:express:hello": "cd compareExpress && ts-node express.ts"
   },
@@ -31,30 +30,30 @@
   "license": "MIT",
   "dependencies": {
     "formidable": "^1.2.1",
-    "glob": "^7.1.3",
+    "glob": "^7.1.6",
     "is-promise": "^2.1.0",
-    "reflect-metadata": "^0.1.12"
+    "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
-    "@types/chai": "^4.1.7",
+    "@types/chai": "^4.2.7",
     "@types/formidable": "^1.0.31",
     "@types/mmmagic": "^0.4.29",
-    "@types/mocha": "^5.2.5",
-    "@types/mongoose": "^5.3.19",
-    "@types/node": "^10.12.11",
+    "@types/mocha": "^5.2.7",
+    "@types/mongoose": "^5.5.41",
+    "@types/node": "^10.17.13",
     "@types/reflect-metadata": "^0.1.0",
-    "@types/webpack-env": "^1.13.6",
+    "@types/webpack-env": "^1.15.0",
     "chai": "^4.2.0",
     "express": "^4.17.1",
-    "gulp": "^4.0.0",
-    "gulp-tslint": "^8.1.3",
-    "gulp-typescript": "^5.0.0",
-    "loadtest": "^3.0.4",
-    "merge2": "^1.2.3",
-    "mocha": "^5.2.0",
-    "mongoose": "^5.4.15",
+    "gulp": "^4.0.2",
+    "gulp-tslint": "^8.1.4",
+    "gulp-typescript": "^5.0.1",
+    "loadtest": "^3.1.0",
+    "merge2": "^1.3.0",
+    "mocha": "^7.1.1",
+    "mongoose": "^5.8.9",
     "ts-node": "^7.0.1",
-    "tslint": "^5.11.0",
-    "typescript": "^3.2.1"
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.5"
   }
 }

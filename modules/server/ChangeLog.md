@@ -1,3 +1,7 @@
+0.4.6 / 2020-04-16
+===================
+  * Updating: Dependencies
+
 0.4.3 / 2020-01-20
 ===================
   * Modify: Moving express to a dev dependency

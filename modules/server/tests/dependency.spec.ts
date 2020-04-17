@@ -35,7 +35,7 @@ class Zoo {
 
 describe('{Dependency}', function() {
     before(function (done) {
-        mongoose.connect('mongodb://localhost:27017/tboxTest', { useNewUrlParser: true })
+        mongoose.connect('mongodb://localhost:27017/tboxTest', { useNewUrlParser: true, useUnifiedTopology: true })
             .then(x => done())
             .catch(err => done(err));
     });

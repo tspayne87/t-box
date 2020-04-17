@@ -206,7 +206,7 @@ export class Application {
     /**
      * Method is meant to close the current internal web http server.
      */
-    public close(callback?: Function) {
+    public close(callback?: (err?: Error) => void) {
         this._webServer.close(callback);
     }
 }
