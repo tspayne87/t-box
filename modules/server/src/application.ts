@@ -1,7 +1,7 @@
 import { InternalServer } from './internal';
 import { Dependency } from './dependency';
 import { ILogger, ConsoleLogger } from './loggers';
-import { IServiceHandler, IServerConfig, IController, IInjector, IApplication, IDependency } from './interfaces';
+import { IServiceHandler, IServerConfig, IController, IInjector, IApplication, IDependency, IInternalController, IInternalInjector } from './interfaces';
 import * as isPromise from 'is-promise';
 import * as http2 from 'http2';
 import * as http from 'http';
@@ -86,7 +86,7 @@ export class Application implements IApplication {
      * @param dirname The directory name that should be used instead of the current directory the server is running in.
      */
     public async registerControllers(context: string | __WebpackModuleApi.RequireContext, dirname?: string): Promise<void> {
-        let items = await this.findItems<IController>(context, dirname || this._config.cwd, this.controllerSuffix);
+        let items = await this.findItems<IInternalController>(context, dirname || this._config.cwd, this.controllerSuffix);
         for (let i = 0; i < items.length; ++i) {
             this._server.addControllers(items[i]);
         }
@@ -99,7 +99,7 @@ export class Application implements IApplication {
      * @param dirname The directory name that should be used instead of the current directory the server is running in.
      */
     public async registerInjectors(context: string | __WebpackModuleApi.RequireContext, dirname?: string): Promise<void> {
-        let items = await this.findItems<IInjector>(context, dirname || this._config.cwd, this.injectorSuffix);
+        let items = await this.findItems<IInternalInjector>(context, dirname || this._config.cwd, this.injectorSuffix);
         for (let i = 0; i < items.length; ++i) {
             this._server.addInjectors(items[i]);
         }
@@ -112,9 +112,12 @@ export class Application implements IApplication {
      * @param dirname The directory name that should be used instead o the current directory the server is running in.
      */
     public async startup(context: string | __WebpackModuleApi.RequireContext, dirname?: string): Promise<void> {
-        let items = await this.findItems<(app: IApplication) => void>(context, dirname || this._config.cwd, this.startUpSuffix);
+        let items = await this.findItems<(app: IApplication) => void | Promise<void>>(context, dirname || this._config.cwd, this.startUpSuffix);
         for (let i = 0; i < items.length; ++i) {
-            items[i](this);
+            const result = items[i](this);
+            if (isPromise(result)) {
+                await result;
+            }
         }
     }
 
@@ -232,7 +235,7 @@ export class Application implements IApplication {
      * @param controllers The controllers that need to be added to the server for use.
      */
     public addControllers(...controllers: IController[]): void {
-        this._server.addControllers(...controllers);
+        this._server.addControllers(...controllers as IInternalController[]);
     }
 
     /**
@@ -241,7 +244,7 @@ export class Application implements IApplication {
      * @param injectors The injectors that need the be added to the server for use.
      */
     public addInjectors(...injectors: IInjector[]): void {
-        this._server.addInjectors(...injectors);
+        this._server.addInjectors(...injectors as IInternalInjector[]);
     }
 
     /**

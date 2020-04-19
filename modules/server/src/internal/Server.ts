@@ -7,7 +7,7 @@ import * as isPromise from 'is-promise';
 import { Controller } from '../controller';
 import { Injector } from '../Injector';
 import { Status } from '../enums';
-import { IInternalRoute, IInternalInjectedRoute, IServerConfig, IFormModel, IActionCtor, IAction, IController, IInjector } from '../interfaces';
+import { IInternalRoute, IInternalInjectedRoute, IServerConfig, IFormModel, IActionCtor, IAction, IInternalController, IInternalInjector } from '../interfaces';
 import { Result, JsonResult, AssetResult } from '../results';
 import { ILogger, ConsoleLogger } from '../loggers';
 import { IncomingForm } from 'formidable';
@@ -77,7 +77,7 @@ export class InternalServer {
      * 
      * @param controllers The controllers that need to be added to the server for use.
      */
-    public addControllers(...controllers: IController[]) {
+    public addControllers(...controllers: IInternalController[]) {
         for (let i = 0; i < controllers.length; ++i) {
             let routes = controllers[i].generateRoutes();
             for (let j = 0; j < routes.length; ++j) {
@@ -92,7 +92,7 @@ export class InternalServer {
      * 
      * @param injectors The injectors that need the be added to the server for use.
      */
-    public addInjectors(...injectors: IInjector[]) {
+    public addInjectors(...injectors: IInternalInjector[]) {
         for (let i = 0; i < injectors.length; ++i) {
             let routes = injectors[i].generateRoutes();
             for (let j = 0; j < routes.length; ++j) {

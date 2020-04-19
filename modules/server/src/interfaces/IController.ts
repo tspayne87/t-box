@@ -7,6 +7,9 @@ import { Controller } from '../controller';
  */
 export interface IController {
   new (...args: any[]): Controller;
+}
+
+export interface IInternalController extends IController {
   __routes__?: IRoute[];
   generateRoutes(): IInternalRoute[];
 }

@@ -7,6 +7,10 @@ import { Injector } from '../Injector';
  */
 export interface IInjector {
   new (...args: any[]): Injector;
+
+}
+
+export interface IInternalInjector extends IInjector {
   __routes__?: IRoute[];
   generateRoutes(): IInternalInjectedRoute[];
 }

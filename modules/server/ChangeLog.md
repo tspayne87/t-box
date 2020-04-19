@@ -1,3 +1,8 @@
+0.4.8 / 2020-04-19
+===================
+  * Modify: Allowing for promises to be used in the startup functions
+  * Info: Refactoring some interfaces to better deal with exposing controllers and injectors
+
 0.4.7 / 2020-04-19
 ===================
   * Added: Exposing addSingle through the application class which will configure internal dependencies
