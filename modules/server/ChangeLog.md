@@ -1,3 +1,15 @@
+0.4.7 / 2020-04-19
+===================
+  * Added: Exposing addSingle through the application class which will configure internal dependencies
+  * Added: Exposing addDependency through the application class which will configure internal dependencies
+  * Added: Exposing addScoped through the application class which will configure internal dependencies
+  * Added: Exposing addControllers through the application class which will configure internal server
+  * Added: Exposing addInjectors through the application class which will configure internal server
+  * Added: Added IApplication interface to deal with creating startup functions in the modules themselves so they
+  *        can add middleware, dependencies and controllers in one place
+  * Added: startUp on application to follow the same patterns put into place for registerControllers and registerInjectors,
+  *        this method will leave the registration process up to the modules and not the main server file
+
 0.4.6 / 2020-04-16
 ===================
   * Updating: Dependencies

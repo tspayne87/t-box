@@ -6,7 +6,7 @@ export { Application } from './application';
 export { Injector } from './Injector';
 export { Dependency } from './dependency';
 export { FileContainer } from './internal/uploadFile';
-export { IServiceHandler, ILogger, IAction } from './interfaces';
+export { IServiceHandler, ILogger, IAction, IApplication } from './interfaces';
 export * from './serverRequestWrapper';
 export * from './serverResponseWrapper';
 export { createBeforeActionDecorator } from './utils';

@@ -1,14 +1,4 @@
-import { IRoute, IInternalRoute } from './interfaces';
 import { HtmlResult, AssetResult, RedirectResult } from './results';
-
-/**
- * Helper interface that is used internaly so that typescript builds properly.
- */
-export interface IController {
-    new (...args: any[]): Controller;
-    __routes__?: IRoute[];
-    generateRoutes(): IInternalRoute[];
-}
 
 /**
  * Base controller to be extended from.

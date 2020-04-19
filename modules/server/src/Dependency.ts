@@ -1,11 +1,5 @@
 import 'reflect-metadata';
-
-/**
- * Dependency that requires the object to be a class or a newable function.
- */
-interface IDependency {
-    new (...args: any[]): any;
-}
+import { IDependency } from './interfaces';
 
 /**
  * Class is meant to handle some simple dependency injection for the controllers and to allow for

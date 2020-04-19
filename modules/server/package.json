@@ -1,6 +1,6 @@
 {
   "name": "@t-box/server",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "A simple NodeJs server that uses controllers for routes.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -54,6 +54,6 @@
     "mongoose": "^5.8.9",
     "ts-node": "^7.0.1",
     "tslint": "^5.20.1",
-    "typescript": "^3.7.5"
+    "typescript": "^3.8.3"
   }
 }

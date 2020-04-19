@@ -1,5 +1,5 @@
 import { IRoute } from './IRoute';
-import { IController } from '../controller';
+import { IController } from './IController';
 
 /**
  * Helper class to extend the basic route object and add in the instance of the controller.

@@ -1,5 +1,5 @@
 import { IRoute } from './IRoute';
-import { IInjector } from '../Injector';
+import { IInjector } from './IInjector';
 
 /**
  * Helper class to extend the basic route object and add in the instance of the injector.

@@ -7,3 +7,7 @@ export { IServerConfig } from './IServerConfig';
 export { ILogger } from './ILogger';
 export { IFormModel } from './IFormModel';
 export { IAction, IActionCtor } from './IAction';
+export { IController } from './IController';
+export { IDependency } from './IDependency';
+export { IInjector } from './IInjector';
+export { IApplication } from './IApplication';
