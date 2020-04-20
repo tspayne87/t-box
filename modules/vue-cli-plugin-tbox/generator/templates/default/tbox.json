@@ -1,0 +1,8 @@
+{
+  "modulePath": "src/modules",
+  "env": {
+    "PORT": <%= port %>,
+    "HOSTNAME": "<%= hostname %>",
+    "HOST_URI": "<%= protocol %>://<%= hostname %>:<%= vuePort %>"
+  }
+}

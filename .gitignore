@@ -66,3 +66,4 @@ basic.nodeServer.js
 certs
 test_dist
 compareExpress
+vue-plugin-test
