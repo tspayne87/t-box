@@ -5,15 +5,40 @@ const { execa } = require('@vue/cli-shared-utils');
 
 module.exports = (api, options) => {
   if (api.hasPlugin('typescript') && api.hasPlugin('router')) {
-    api.registerCommand(
-      'tbox:serve',
-      {
-        description: 'Run the T-Box server and watch the sources to restart automatically',
-        usage: 'vue-cli-service tbox:serve'
-      },
-      args => {
-        const tboxConfig = require(path.resolve(api.getCwd(), 'tbox.json'));
-        const externals = [ nodeExternals({ whitelist: [ 'webpack/hot/poll?1000' ] }) ];
+    function getConfig(env) {
+      const externals = [ env === 'development' ? nodeExternals({ whitelist: [ 'webpack/hot/poll?1000' ] }) : nodeExternals() ];
+      const tboxConfig = require(path.resolve(api.getCwd(), 'tbox.json'));
+      const bundleOutputDir = path.join(api.getCwd(), env === 'development' ? '.build' : '.release');
+
+      const config = {
+        target: 'node',
+        mode: env,
+        node: { __dirname: false },
+        resolve: {
+          extensions: [ '.ts', '.js' ],
+          alias: {
+            '@': path.resolve(api.getCwd(), 'src')
+          }
+        },
+        externals,
+        entry: [ path.resolve(api.getCwd(), 'src', 'index.ts') ],
+        output: {
+          path: bundleOutputDir,
+          filename: 'server.js'
+        },
+        module: {
+          rules: [
+            { test: /\.ts$/, include: /src/, loader: require.resolve('ts-loader'), options: { transpileOnly: true } }
+          ]
+        },
+        plugins: []
+      };
+
+      if (env === 'development') {
+        config.devtool = 'inline-source-map';
+        config.watch = true;
+
+        config.entry.unshift('webpack/hot/poll?1000');
 
         // Set-up definitions from the node enviornment
         let definitions = { 'process.env.NODE_ENV': '"development"' };
@@ -22,44 +47,41 @@ module.exports = (api, options) => {
             definitions[`process.env.${keys[i]}`] = `"${tboxConfig.env[keys[i]]}"`;
         }
 
-        const compiler = webpack({
-          target: 'node',
-          mode: 'development',
-          devtool: 'inline-source-map',
-          node: { __dirname: false },
-          watch: true,
-          resolve: {
-            extensions: [ '.ts', '.js' ],
-            alias: {
-              '@': path.resolve(api.getCwd(), 'src')
-            }
-          },
-          externals,
-          entry: [ 'webpack/hot/poll?1000', path.resolve(api.getCwd(), 'src', 'index.ts') ],
-          output: {
-            path: path.resolve(api.getCwd(), '.build'),
-            filename: 'server.js'
-          },
-          module: {
-            rules: [
-              { test: /\.ts$/, include: /src/, loader: require.resolve('ts-loader'), options: { transpileOnly: true } }
-            ]
-          },
-          plugins: [
-            new webpack.DefinePlugin(definitions),
-            new webpack.HotModuleReplacementPlugin()
-          ]
-        });
+        config.plugins.push(new webpack.DefinePlugin(definitions));
+        config.plugins.push(new webpack.HotModuleReplacementPlugin());
+      }
+      return config;
+    }
+
+    api.registerCommand(
+      'tbox:serve',
+      {
+        description: 'Run the T-Box server and watch the sources to restart automatically',
+        usage: 'vue-cli-service tbox:serve'
+      },
+      args => {
+        const compiler = webpack(getConfig('development'));
 
         let proc = null;
-        const watching = compiler.watch({
-          aggregateTimeout: 300,
-          poll: undefined
-        }, (err, stats) => {
+        compiler.watch({ aggregateTimeout: 300, poll: undefined }, (err, stats) => {
           console.log('-- Compiling Finished');
           if (proc === null) {
             proc = execa('node', [path.resolve(api.getCwd(), '.build', 'server.js'), '--inspect'], { stdio: ['inherit', 'inherit', 'inherit'], cleanup: true });
           }
+        });
+      }
+    );
+
+    api.registerCommand(
+      'tbox:build',
+      {
+        description: 'Build the T-Box server for production',
+        usage: 'vue-cli-service tbox:build'
+      },
+      args => {
+        const compiler = webpack(getConfig('production'));
+        compiler.run((err, stat) => {
+          console.log('-- Compiling Finished');
         });
       }
     )

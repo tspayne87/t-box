@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-  import { Component, Vue, Prop } from 'vue-property-decorator';
+  import { Component, Vue } from 'vue-property-decorator';
   import HelloWorld from '../components/HelloWorld.vue';
   import axios from 'axios';
 
@@ -27,7 +27,7 @@
     public get parsePostRequest(): string { return JSON.stringify(this.postRequest, null, 2); }
 
     public async mounted() {
-      this.getRequest = (await axios.get('/api/example')).data;
+      this.getRequest = (await axios.get('/api/example/1')).data;
       this.postRequest = (await axios.post('/api/example', { name: 'Post Data', value: 'Example Data' })).data;
     }
   }

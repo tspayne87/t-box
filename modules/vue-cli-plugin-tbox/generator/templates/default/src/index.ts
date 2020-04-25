@@ -1,8 +1,9 @@
-import * as http from 'http';
+import { Application } from '@t-box/server';
+import http from 'http';
 import boot from './server';
 
 const server = http.createServer();
-let currentApp: any;
+let currentApp: Application;
 
 let port = parseInt(process.env.PORT as string, 10);
 let hostname = process.env.HOSTNAME;

@@ -1,13 +1,18 @@
 {
   "name": "@t-box/vue-cli-plugin-tbox",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "Vue cli plugin to make create a t-box server easier",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "homepage": "https://terry-payne-web.herokuapp.com/t-box",
+  "author": "Terry Payne",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tspayne87/t-box/tree/master/modules/vue-cli-plugin-tbox"
+  },
+  "license": "MIT",
   "dependencies": {
     "@vue/cli-shared-utils": "^4.3.1",
     "ts-loader": "^7.0.0",
