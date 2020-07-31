@@ -9,6 +9,7 @@
     "noLib": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
     "removeComments": false,
     "noImplicitAny": false,
     "declaration": true

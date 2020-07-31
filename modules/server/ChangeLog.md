@@ -1,3 +1,9 @@
+0.4.9 / 2020-07-31
+===================
+  * Breaking Change: Breaking the application into two types of applications the webpack and basic application
+  * Added: Added WebpackApplication so that breaking up between the webpack and normal string controls
+  * Modify: Application moving away from using both webpack and normal string in one function
+
 0.4.8 / 2020-04-19
 ===================
   * Modify: Allowing for promises to be used in the startup functions
