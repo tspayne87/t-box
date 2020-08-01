@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import 'mocha';
-import { Application } from '../src';
+import { Application } from '../src/application';
 import { Http } from './utils';
 
 describe('{Static}:/public', function() {

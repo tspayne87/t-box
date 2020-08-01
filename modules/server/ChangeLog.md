@@ -1,3 +1,10 @@
+0.4.10 / 2020-07-31
+===================
+  * Breaking Change: Removing Application and WebpackApplication from the base index file, if a user wants
+  *                  to use the application class they will need to call it directly instead of going through
+  *                  basic import logic for npm modules.
+  * Example: import { Application } from @t-box/server/application
+
 0.4.9 / 2020-07-31
 ===================
   * Breaking Change: Breaking the application into two types of applications the webpack and basic application

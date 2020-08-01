@@ -1,4 +1,4 @@
-import { Application } from '../../src';
+import { Application } from '../../src/application';
 import * as Cluster from 'cluster';
 import * as OS from 'os';
 

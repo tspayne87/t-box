@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import 'mocha';
-import { Application } from '../src';
+import { Application } from '../src/application';
 import { Http } from './utils';
 import * as fs from 'fs';
 import * as path from 'path';

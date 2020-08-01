@@ -1,4 +1,4 @@
-import { Application } from '../../src';
+import { Application } from '../../src/application';
 import { ServiceHandler } from './services/ServiceHandler';
 import * as http2 from 'http';
 
